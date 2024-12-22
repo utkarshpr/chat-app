@@ -37,6 +37,7 @@ vendor/
 go.sum
 go.mod
 .env
+app.log
 
 # Temporary files
 *.tmp

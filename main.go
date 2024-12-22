@@ -1,20 +1,37 @@
 package main
 
 import (
-	"context"
 	"log"
+	"os"
 	"real-time-chat-app/database"
-	"time"
+	"real-time-chat-app/logger"
+	repo "real-time-chat-app/repositary"
+	"real-time-chat-app/routes"
 
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 func main() {
 
+	logger.InitLogger("app.log")
+
 	loadEnvVarible()
 	// Initialize MongoDB connection
-	database.ConnectMongo()
+	database.InitMongoDB()
+	repo.InitRepository()
+
+	// Set up the Gin router
+	r := gin.Default()
+	gin.SetMode(gin.ReleaseMode)
+
+	// Register authentication routes
+	routes.AuthRoutes(r)
+	port := os.Getenv("PORT")
+	err := r.Run(port) // Changes the port to 8081
+	if err != nil {
+		logger.LogError("Failed to start server: " + err.Error())
+	}
 
 	//TestDatabase()
 
@@ -26,24 +43,4 @@ func loadEnvVarible() {
 	if err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
-}
-
-func TestDatabase() {
-	// Insert a test document into the "users" collection
-	usersCollection := database.GetCollection("user")
-	testUser := bson.M{
-		"username": "test_user1",
-		"email":    "test_user@example.com",
-		"status":   "active",
-		"created":  time.Now(),
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	_, err := usersCollection.InsertOne(ctx, testUser)
-	if err != nil {
-		log.Fatalf("Failed to insert test user: %v", err)
-	}
-	log.Println("Test user inserted successfully")
 }

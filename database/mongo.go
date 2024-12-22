@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -10,39 +11,33 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var DB *mongo.Database
+var mongoClient *mongo.Client
 
-// ConnectMongo establishes a connection to MongoDB.
-func ConnectMongo() {
-	// Define MongoDB connection URI (update as needed)
-	uri := os.Getenv("MONGO_URI")
-
-	// Set up client options
-	clientOptions := options.Client().ApplyURI(uri)
-
-	// Create a new MongoDB client
-	client, err := mongo.NewClient(clientOptions)
-	if err != nil {
-		log.Fatalf("Failed to create MongoDB client: %v", err)
-	}
-
-	// Set a timeout for connection context
+// Initialize MongoDB connection
+func InitMongoDB() {
+	var err error
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// Connect the client to MongoDB
-	err = client.Connect(ctx)
+	// Replace `your_mongodb_connection_string` with your MongoDB URI
+	mongoClient, err = mongo.Connect(ctx, options.Client().ApplyURI(os.Getenv("MONGO_URI")))
 	if err != nil {
 		log.Fatalf("Failed to connect to MongoDB: %v", err)
 	}
 
-	// Select the database
-	database := os.Getenv("MONGO_DATABASE")
-	DB = client.Database(database)
-	log.Println("Connected to MongoDB")
+	// Ping to check connection
+	err = mongoClient.Ping(ctx, nil)
+	if err != nil {
+		log.Fatalf("Failed to ping MongoDB: %v", err)
+	}
+
+	fmt.Println("Connected to MongoDB")
 }
 
-// GetCollection returns a MongoDB collection by name.
-func GetCollection(name string) *mongo.Collection {
-	return DB.Collection(name)
+// GetCollection returns a MongoDB collection
+func GetCollection(collectionName string) *mongo.Collection {
+	// Replace `chat_app_db` with your database name
+	database := mongoClient.Database(os.Getenv("MONGO_DATABASE"))
+	fmt.Print(database)
+	return database.Collection(collectionName)
 }
