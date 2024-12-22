@@ -8,7 +8,7 @@ import (
 	"real-time-chat-app/services"
 	"real-time-chat-app/validation"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/gin-gonic/gin"
 )
 
 // SignUpController handles the user registration process.
@@ -122,18 +122,18 @@ func LoginController(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func SecureEndpoint(w http.ResponseWriter, r *http.Request) {
-	// Fetch user data from context
-	userClaims, ok := r.Context().Value("user").(jwt.MapClaims)
-	if !ok {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+// SecureEndpoint handles the secure endpoint requests
+func SecureEndpoint(c *gin.Context) {
+	// Retrieve the user data from the context
+	userClaims, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
-	// Return secure data
-	response := map[string]interface{}{
+	// Return secure data along with user claims
+	c.JSON(http.StatusOK, gin.H{
 		"message": "This is a secure endpoint.",
 		"user":    userClaims,
-	}
-	json.NewEncoder(w).Encode(response)
+	})
 }

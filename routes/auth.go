@@ -2,6 +2,7 @@ package routes
 
 import (
 	"real-time-chat-app/controllers"
+	"real-time-chat-app/security"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,5 +23,16 @@ func AuthRoutes(r *gin.Engine) {
 			controllers.LoginController(c.Writer, c.Request)
 		})
 		// auth.POST("/logout", controllers.Logout)
+	}
+}
+
+// SecureRoutes registers the secure routes with middleware applied
+func SecureRoutes(r *gin.Engine) {
+	// Define the /secure group
+	secure := r.Group("/secure")
+	secure.Use(security.GinAuthMiddleware()) // Apply authentication middleware to secure routes
+	{
+		// Define a secure route that returns secure data
+		secure.GET("/data", controllers.SecureEndpoint)
 	}
 }
