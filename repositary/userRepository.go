@@ -96,7 +96,8 @@ func generateJWT(user models.User) (string, error) {
 		"user_id":    user.ID.Hex(), // User ID (in case you want to identify the user by ID)
 		"username":   user.Username, // User's username
 		"First Name": user.FirstName,
-		"Last Name":  user.LastName,                         // User's email
+		"Last Name":  user.LastName,
+		"role":       user.Role,                             // User's email
 		"exp":        time.Now().Add(time.Hour * 24).Unix(), // Token expiration time (1 day)
 	}
 

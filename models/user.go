@@ -1,6 +1,9 @@
 package models
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -17,6 +20,7 @@ type User struct {
 	LastName      string             `json:"last_name" bson:"last_name"`
 	Address       string             `json:"address" bson:"address,omitempty"`
 	DateOfBirth   string             `json:"date_of_birth" bson:"date_of_birth"`
+	Role          Role               `json:"role" bson:"role"`
 }
 
 type UserResponse struct {
@@ -36,4 +40,26 @@ type LoginUser struct {
 type LoginResponse struct {
 	Username string `json:"username" bson:"username" `
 	Token    string `json:"token" bson:"token" `
+}
+
+type Role string
+
+const (
+	Admin  Role = "ADMIN"
+	Client Role = "CLIENT"
+)
+
+func (r *Role) UnmarshalJSON(data []byte) error {
+	var roleStr string
+	if err := json.Unmarshal(data, &roleStr); err != nil {
+		return err
+	}
+
+	switch roleStr {
+	case string(Admin), string(Client):
+		*r = Role(roleStr)
+		return nil
+	default:
+		return fmt.Errorf("invalid role: %s", roleStr)
+	}
 }

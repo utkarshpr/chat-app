@@ -7,26 +7,23 @@ import (
 	"real-time-chat-app/models"
 	"real-time-chat-app/services"
 	"real-time-chat-app/validation"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
-// SignUpController handles the user registration process.
-// It only allows the POST method for signing up a new user, validates the incoming data,
-// and creates a new user in the database.
+// SignUpController handles user sign-up requests.
 //
 // @Summary Sign up a new user
-// @Description Registers a new user by accepting username, email, password, first name, last name, address, and date of birth.
-//
-//	The user data is validated and then passed to the service layer for user creation.
-//
-// @Tags auth
-// @Accept  json
+// @Description Processes user registration by validating the input and creating a new user.
+// @Tags Authentication
+// @Accept json
 // @Produce json
-// @Param user body models.User true "User registration details"
-// @Success 202 {object} models.UserResponse "User created successfully"
-// @Failure 400 {object} models.GenericResponse "Invalid input or failed user creation"
-// @Failure 405 {string} string "Method Not Allowed"
+// @Param user body models.User true "User Details"
+// @Success 201 {object} models.Response{data=models.UserResponse} "User created successfully"
+// @Failure 400 {object} models.Response "Invalid input or validation errors"
+// @Failure 405 {object} models.Response "Method not allowed"
+// @Failure 500 {object} models.Response "Internal server error"
 // @Router /auth/signup [post]
 func SignUpController(w http.ResponseWriter, r *http.Request) {
 
@@ -43,8 +40,12 @@ func SignUpController(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&user)
 	if err != nil {
-		logger.LogInfo("SignUpController :: error in decoding the body")
-		models.ManageResponse(w, "error in decoding the body", http.StatusBadRequest, nil, false)
+		if strings.HasPrefix(err.Error(), "invalid role:") {
+			models.ManageResponse(w, "Error : "+"Invalid role provided. Allowed roles are 'ADMIN' or 'CLIENT'.", http.StatusBadRequest, nil, false)
+			return
+		}
+		logger.LogInfo("SignUpController :: error in decoding the body" + err.Error())
+		models.ManageResponse(w, "error in decoding the body "+err.Error(), http.StatusBadRequest, nil, false)
 
 		return
 	}
@@ -77,6 +78,19 @@ func SignUpController(w http.ResponseWriter, r *http.Request) {
 	models.ManageResponse(w, "User created successfully.", http.StatusAccepted, responseModel, true)
 }
 
+// LoginController handles user login requests.
+//
+// @Summary User login
+// @Description Authenticates the user with valid credentials and returns a JWT token.
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param user body models.LoginUser true "Login User Details"
+// @Success 200 {object} models.Response{data=models.LoginResponse} "User logged in successfully"
+// @Failure 400 {object} models.Response "Invalid input or validation errors"
+// @Failure 405 {object} models.Response "Method not allowed"
+// @Failure 500 {object} models.Response "Internal server error"
+// @Router /auth/login [post]
 func LoginController(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != "POST" {
