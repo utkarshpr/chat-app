@@ -16,7 +16,11 @@ func AuthRoutes(r *gin.Engine) {
 			controllers.SignUpController(c.Writer, c.Request)
 		})
 		// Uncomment and modify the following if needed
-		// auth.POST("/login", controllers.Login)
+		auth.POST("/login", func(c *gin.Context) {
+
+			// Call SignUpController with ResponseWriter and Request
+			controllers.LoginController(c.Writer, c.Request)
+		})
 		// auth.POST("/logout", controllers.Logout)
 	}
 }

@@ -48,6 +48,20 @@ func SignUpUserValidation(user *models.User) error {
 	return nil
 }
 
+func LoginUserValidation(user *models.LoginUser) error {
+
+	// Validate username (at least 3 characters long)
+	if len(user.Username) < 1 {
+		return errors.New("username must be provided")
+	}
+
+	// Validate password (at least 6 characters long and contains at least one number)
+	if len(user.Password) < 1 {
+		return errors.New("password must be provided")
+	}
+	return nil
+}
+
 // Helper function to check if the email is valid
 func isValidEmail(email string) bool {
 	// Simple email regex pattern

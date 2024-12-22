@@ -6,7 +6,7 @@ import (
 
 // User represents the structure of a user
 type User struct {
-	ID            primitive.ObjectID `json:"id" bson:"_id"`
+	ID            primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	Username      string             `json:"username" bson:"username" `
 	Email         string             `json:"email" bson:"email" `
 	Password      string             `json:"password" bson:"password" `
@@ -26,4 +26,14 @@ type UserResponse struct {
 	LastName    string `json:"last_name" bson:"last_name"`
 	Address     string `json:"address" bson:"address,omitempty"`
 	DateOfBirth string `json:"date_of_birth" bson:"date_of_birth"`
+}
+
+type LoginUser struct {
+	Username string `json:"username" bson:"username" `
+	Password string `json:"password" bson:"password" `
+}
+
+type LoginResponse struct {
+	Username string `json:"username" bson:"username" `
+	Token    string `json:"token" bson:"token" `
 }

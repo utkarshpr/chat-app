@@ -6,7 +6,8 @@ import (
 	"real-time-chat-app/database"
 	"real-time-chat-app/logger"
 	repo "real-time-chat-app/repositary"
-	"real-time-chat-app/routes"
+
+	routes "real-time-chat-app/routes"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"

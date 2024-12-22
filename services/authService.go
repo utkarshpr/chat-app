@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"real-time-chat-app/logger"
 	"real-time-chat-app/models"
 	repo "real-time-chat-app/repositary"
 
@@ -25,4 +26,16 @@ func CreateUser(user *models.User) error {
 	}
 
 	return nil
+}
+
+func LoginUser(user *models.LoginUser) (string, error) {
+
+	// Delegate to database layer
+	logger.LogInfo("LoginUser :: fetching IsLoggedinUserExist")
+	token, err := repo.IsLoggedinUserExist(user)
+	if err != nil {
+		return "", err
+	}
+	logger.LogInfo("LoginUser ::  JWT token collected .")
+	return token, nil
 }

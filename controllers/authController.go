@@ -7,18 +7,27 @@ import (
 	"real-time-chat-app/models"
 	"real-time-chat-app/services"
 	"real-time-chat-app/validation"
+
+	"github.com/golang-jwt/jwt"
 )
 
-// SignUp godoc
+// SignUpController handles the user registration process.
+// It only allows the POST method for signing up a new user, validates the incoming data,
+// and creates a new user in the database.
+//
 // @Summary Sign up a new user
-// @Description User registers by providing username, email, and password
+// @Description Registers a new user by accepting username, email, password, first name, last name, address, and date of birth.
+//
+//	The user data is validated and then passed to the service layer for user creation.
+//
 // @Tags auth
-// @Accept json
+// @Accept  json
 // @Produce json
 // @Param user body models.User true "User registration details"
-// @Success 200 {object} models.User
-// @Failure 400 {string} string "Bad Request"
-// @Router /signup [post]
+// @Success 202 {object} models.UserResponse "User created successfully"
+// @Failure 400 {object} models.GenericResponse "Invalid input or failed user creation"
+// @Failure 405 {string} string "Method Not Allowed"
+// @Router /auth/signup [post]
 func SignUpController(w http.ResponseWriter, r *http.Request) {
 
 	// Only allow POST method
@@ -66,4 +75,65 @@ func SignUpController(w http.ResponseWriter, r *http.Request) {
 		DateOfBirth: user.DateOfBirth,
 	}
 	models.ManageResponse(w, "User created successfully.", http.StatusAccepted, responseModel, true)
+}
+
+func LoginController(w http.ResponseWriter, r *http.Request) {
+
+	if r.Method != "POST" {
+		logger.LogInfo("LoginController :: error POST method required")
+		models.ManageResponse(w, "POST method required", http.StatusMethodNotAllowed, nil, false)
+		return
+	}
+
+	var user models.LoginUser
+
+	// Decode the JSON body into the User struct
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&user)
+	if err != nil {
+		logger.LogInfo("LoginController :: error in decoding the body")
+		models.ManageResponse(w, "error in decoding the body", http.StatusBadRequest, nil, false)
+
+		return
+	}
+
+	// validation
+	err = validation.LoginUserValidation(&user)
+	if err != nil {
+		logger.LogInfo("LoginController :: error in validation  " + err.Error())
+		models.ManageResponse(w, "Error : "+err.Error(), http.StatusBadRequest, nil, false)
+		return
+	}
+
+	//password match
+	token, err := services.LoginUser(&user)
+	if err != nil {
+		logger.LogInfo("LoginController :: error in service call " + err.Error())
+		models.ManageResponse(w, "Unable to login the User "+err.Error(), http.StatusBadRequest, nil, false)
+		return
+	}
+
+	resp := &models.LoginResponse{
+		Username: user.Username,
+		Token:    token,
+	}
+
+	models.ManageResponse(w, "User LoggedIn successfully.", http.StatusOK, resp, true)
+
+}
+
+func SecureEndpoint(w http.ResponseWriter, r *http.Request) {
+	// Fetch user data from context
+	userClaims, ok := r.Context().Value("user").(jwt.MapClaims)
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Return secure data
+	response := map[string]interface{}{
+		"message": "This is a secure endpoint.",
+		"user":    userClaims,
+	}
+	json.NewEncoder(w).Encode(response)
 }
