@@ -49,19 +49,3 @@ func GinAuthMiddleware() gin.HandlerFunc {
 		c.Next()
 	}
 }
-
-// SecureEndpoint handles the secure endpoint requests
-func SecureEndpoint(c *gin.Context) {
-	// Retrieve the user data from the context
-	userClaims, exists := c.Get("user")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-
-	// Return secure data along with user claims
-	c.JSON(http.StatusOK, gin.H{
-		"message": "This is a secure endpoint.",
-		"user":    userClaims,
-	})
-}
