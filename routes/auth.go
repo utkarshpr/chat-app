@@ -22,7 +22,14 @@ func AuthRoutes(r *gin.Engine) {
 			// Call SignUpController with ResponseWriter and Request
 			controllers.LoginController(c.Writer, c.Request)
 		})
-		// auth.POST("/logout", controllers.Logout)
+		auth.Use(security.GinAuthMiddleware())
+		{
+			auth.POST("/logout", func(c *gin.Context) {
+
+				// Call SignUpController with ResponseWriter and Request
+				controllers.LogoutController(c)
+			})
+		}
 	}
 }
 

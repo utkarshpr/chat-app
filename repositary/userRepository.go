@@ -227,3 +227,27 @@ func FetchJwtTokenForUser(username string) (*models.LoginResponse, error) {
 	logger.LogInfo("FetchJwtTokenForUser :: Successfully fetched JWT token for user: " + username)
 	return &loginResp, nil
 }
+
+func LogoutUser(username string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Define the filter to identify the user's token
+	filter := bson.M{"username": username}
+
+	// Attempt to delete the user's token document from the collection
+	result, err := jwtCollection.DeleteOne(ctx, filter)
+	if err != nil {
+		logger.LogInfo("Logout :: Error while removing JWT token from DB for user: " + username + " - " + err.Error())
+		return errors.New("failed to logout the user")
+	}
+
+	// Check if any document was deleted
+	if result.DeletedCount == 0 {
+		logger.LogInfo("Logout :: No JWT token found to remove for user: " + username)
+		return errors.New("no active session found for the user")
+	}
+
+	logger.LogInfo("Logout :: Successfully logged out user: " + username)
+	return nil
+}

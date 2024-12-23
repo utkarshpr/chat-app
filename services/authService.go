@@ -39,3 +39,12 @@ func LoginUser(user *models.LoginUser) (string, string, error) {
 	logger.LogInfo("LoginUser ::  JWT token collected .")
 	return token, refreshtoken, nil
 }
+
+func LogoutUser(username string) error {
+	err := repo.LogoutUser(username)
+	if err != nil {
+		logger.LogInfo("LogoutUser :: ailed to logout the user")
+		return errors.New("failed to logout the user")
+	}
+	return nil
+}

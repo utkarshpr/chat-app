@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"real-time-chat-app/logger"
 	"real-time-chat-app/models"
@@ -10,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 )
 
 // SignUpController handles user sign-up requests.
@@ -134,6 +136,57 @@ func LoginController(w http.ResponseWriter, r *http.Request) {
 	}
 
 	models.ManageResponse(w, "User LoggedIn successfully.", http.StatusOK, resp, true)
+
+}
+
+// LogoutController handles user logout by removing their JWT tokens from the database.
+//
+// @Summary      Logs out the user by invalidating their JWT token.
+// @Description  This endpoint logs out the currently logged-in user. The user must be authenticated,
+//
+//	and their JWT token will be removed from the database. A valid "Authorization" header
+//	with a bearer token is required.
+//
+// @Tags         Authentication
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "Bearer token"
+// @Success      202 {object} gin.H{"message": "Logout successfuly", "status": true}
+// @Failure      405 {object} gin.H{"message": "POST method required", "status": false}
+// @Failure      401 {object} gin.H{"error": "Unauthorized"}
+// @Failure      500 {object} gin.H{"message": "Unable to process user claims.", "status": false}
+// @Failure      400 {object} gin.H{"message": "Unable to Logout", "status": false}
+// @Router       /auth/logout [post]
+func LogoutController(c *gin.Context) {
+
+	if c.Request.Method != "POST" {
+		logger.LogInfo("LogoutController :: error POST method required")
+		models.ManageResponse(c.Writer, "POST method required", http.StatusMethodNotAllowed, nil, false)
+		return
+	}
+
+	userClaims, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	fmt.Println(userClaims)
+	claims, ok := userClaims.(jwt.MapClaims)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Unable to process user claims.",
+			"status":  false,
+		})
+		return
+	}
+	username := claims["username"].(string)
+
+	err := services.LogoutUser(username)
+	if err != nil {
+		models.ManageResponse(c.Writer, "Unableto Logout", http.StatusBadRequest, nil, false)
+		return
+	}
+	models.ManageResponse(c.Writer, "Logout successfuly ", http.StatusAccepted, nil, true)
 
 }
 
