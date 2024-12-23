@@ -20,5 +20,13 @@ func UserRoutes(r *gin.Engine) {
 				controllers.FetchUserController(c)
 			})
 		}
+		user.Use(security.GinAuthMiddleware())
+		{
+			user.POST("/updateUserAndProfile", func(c *gin.Context) {
+
+				// Call SignUpController with ResponseWriter and Request
+				controllers.UpdateUserAndProfile(c)
+			})
+		}
 	}
 }

@@ -269,3 +269,139 @@ func UserFetchFromDB(username string) (*models.UserResponse, error) {
 
 	return &user, nil
 }
+
+func UserAndProfileUpdate(username string, updateUser *models.UpdateUserAndProfile) (*models.UserResponse, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var user models.User
+	filter := bson.M{"username": username}
+
+	err := userCollection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New("user not found")
+		}
+		return nil, err
+	}
+
+	err = handleInvalidDatainUpdate(updateUser, &user)
+	updateData := bson.M{
+		"password":       updateUser.Password,
+		"avatar_url":     updateUser.AvatarURL,
+		"status_message": updateUser.StatusMessage,
+		"last_seen":      updateUser.LastSeen,
+		"first_name":     updateUser.FirstName,
+		"last_name":      updateUser.LastName,
+		"address":        updateUser.Address,
+		"date_of_birth":  updateUser.DateOfBirth,
+		"role":           updateUser.Role,
+		"profile": bson.M{
+			"bio":                  updateUser.Profile.Bio,
+			"is_profile_public":    updateUser.Profile.IsProfilePublic,
+			"cover_photo_url":      updateUser.Profile.CoverPhotoURL,
+			"profile_completeness": updateUser.Profile.ProfileCompleteness,
+			"social_links":         updateUser.Profile.SocialLinks,
+			"interests":            updateUser.Profile.Interests,
+			"contact_preferences":  updateUser.Profile.ContactPreferences,
+			"occupation":           updateUser.Profile.Occupation,
+			"education":            updateUser.Profile.Education,
+			"achievements":         updateUser.Profile.Achievements,
+			"gender":               updateUser.Profile.Gender,
+			"phone_number":         updateUser.Profile.PhoneNumber,
+		},
+	}
+
+	update := bson.M{"$set": updateData}
+
+	_, err = userCollection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return nil, err
+	}
+
+	var userResponse models.UserResponse
+	// Fetch the updated user data
+	err = userCollection.FindOne(ctx, filter).Decode(&userResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return &userResponse, nil
+}
+
+func handleInvalidDatainUpdate(updateUser *models.UpdateUserAndProfile, user *models.User) error {
+	// Overwrite fields in updateUser with existing user data if the field is empty
+	if updateUser.Password != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(updateUser.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return errors.New("failed to hash password")
+		}
+		updateUser.Password = string(hashedPassword)
+	} else {
+		// If password is empty, keep the existing password
+		updateUser.Password = user.Password
+	}
+
+	if updateUser.FirstName == "" {
+		updateUser.FirstName = user.FirstName
+	}
+	if updateUser.LastName == "" {
+		updateUser.LastName = user.LastName
+	}
+	if updateUser.AvatarURL == "" {
+		updateUser.AvatarURL = user.AvatarURL
+	}
+	if updateUser.StatusMessage == "" {
+		updateUser.StatusMessage = user.StatusMessage
+	}
+	if updateUser.LastSeen == "" {
+		updateUser.LastSeen = user.LastSeen
+	}
+	if updateUser.Address == "" {
+		updateUser.Address = user.Address
+	}
+	if updateUser.DateOfBirth == "" {
+		updateUser.DateOfBirth = user.DateOfBirth
+	}
+	if updateUser.Role == "" {
+		updateUser.Role = user.Role
+	}
+	if updateUser.Profile.Bio == "" {
+		updateUser.Profile.Bio = user.Profile.Bio
+	}
+	if updateUser.Profile.IsProfilePublic != true || updateUser.Profile.IsProfilePublic != false {
+		updateUser.Profile.IsProfilePublic = user.Profile.IsProfilePublic
+	}
+	if updateUser.Profile.CoverPhotoURL == "" {
+		updateUser.Profile.CoverPhotoURL = user.Profile.CoverPhotoURL
+	}
+	if updateUser.Profile.ProfileCompleteness == 0 {
+		updateUser.Profile.ProfileCompleteness = user.Profile.ProfileCompleteness
+	}
+	if updateUser.Profile.SocialLinks == nil {
+		updateUser.Profile.SocialLinks = user.Profile.SocialLinks
+	}
+	if updateUser.Profile.Interests == nil {
+		updateUser.Profile.Interests = user.Profile.Interests
+	}
+	if updateUser.Profile.ContactPreferences == nil {
+		updateUser.Profile.ContactPreferences = user.Profile.ContactPreferences
+	}
+	if updateUser.Profile.Occupation == "" {
+		updateUser.Profile.Occupation = user.Profile.Occupation
+	}
+	if updateUser.Profile.Education == "" {
+		updateUser.Profile.Education = user.Profile.Education
+	}
+	if updateUser.Profile.Achievements == nil {
+		updateUser.Profile.Achievements = user.Profile.Achievements
+	}
+	if updateUser.Profile.Gender == "" {
+		updateUser.Profile.Gender = user.Profile.Gender
+	}
+	if updateUser.Profile.PhoneNumber == "" {
+		updateUser.Profile.PhoneNumber = user.Profile.PhoneNumber
+	}
+	return nil
+
+}

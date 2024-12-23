@@ -16,3 +16,12 @@ func UserFetch(username string) (*models.UserResponse, error) {
 	return userResponse, nil
 
 }
+
+func UserAndProfileUpdate(username string, user *models.UpdateUserAndProfile) (*models.UserResponse, error) {
+	userResponse, err := repo.UserAndProfileUpdate(username, user)
+	if err != nil {
+		logger.LogInfo("FetchUserController :: error  while fetching the user ")
+		return nil, err
+	}
+	return userResponse, nil
+}
