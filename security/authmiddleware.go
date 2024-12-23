@@ -27,7 +27,6 @@ func GinAuthMiddleware() gin.HandlerFunc {
 
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 		secretKey := []byte(os.Getenv("JWT_SECRET_KEY"))
-		logger.LogInfo(tokenString)
 		// Parse and validate the JWT token
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -36,7 +35,6 @@ func GinAuthMiddleware() gin.HandlerFunc {
 			}
 			return secretKey, nil
 		})
-		logger.LogInfo("...........................")
 		if err != nil || !token.Valid {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			c.Abort()
@@ -87,4 +85,40 @@ func GinAuthMiddleware() gin.HandlerFunc {
 		// Store the role and claims in the context
 
 	}
+}
+
+func GetClaims(c *gin.Context) jwt.MapClaims {
+	authHeader := c.GetHeader("Authorization")
+	logger.LogInfo(authHeader)
+	if authHeader == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header missing"})
+		c.Abort()
+		return nil
+	}
+
+	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+	secretKey := []byte(os.Getenv("JWT_SECRET_KEY"))
+	// Parse and validate the JWT token
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			logger.LogInfo("unexpected signing method")
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+		return secretKey, nil
+	})
+	if err != nil || !token.Valid {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		c.Abort()
+		return nil
+	}
+
+	// Extract claims and store them in context
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		models.ManageResponse(c.Writer, "Unable to parse claims", http.StatusBadRequest, nil, false)
+		c.Abort()
+		return nil
+	}
+	return claims
+
 }

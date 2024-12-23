@@ -405,3 +405,24 @@ func handleInvalidDatainUpdate(updateUser *models.UpdateUserAndProfile, user *mo
 	return nil
 
 }
+
+func DeleteUser(username string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	filter := bson.M{"username": username}
+
+	deletedResult, err := userCollection.DeleteOne(ctx, filter)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return errors.New("user not found")
+		}
+
+		return nil
+	}
+	if deletedResult.DeletedCount == 0 {
+		return errors.New("user not found with username " + username)
+	}
+	logger.LogInfo("User Deleted from the database" + string(deletedResult.DeletedCount))
+	return nil
+}

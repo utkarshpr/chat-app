@@ -28,5 +28,13 @@ func UserRoutes(r *gin.Engine) {
 				controllers.UpdateUserAndProfile(c)
 			})
 		}
+		user.Use(security.GinAuthMiddleware())
+		{
+			user.DELETE("/deleteUser", func(c *gin.Context) {
+
+				// Call SignUpController with ResponseWriter and Request
+				controllers.DeleteUserController(c)
+			})
+		}
 	}
 }
