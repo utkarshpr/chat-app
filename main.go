@@ -29,6 +29,7 @@ func main() {
 	// Register authentication routes
 	routes.AuthRoutes(r)
 	routes.SecureRoutes(r)
+	routes.UserRoutes(r)
 
 	port := os.Getenv("PORT")
 	err := r.Run(port) // Changes the port to 8081

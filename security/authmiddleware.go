@@ -16,6 +16,7 @@ import (
 // GinAuthMiddleware is a middleware that checks if the JWT token is valid
 func GinAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		logger.LogInfo("GinAuthMiddleware ...")
 		authHeader := c.GetHeader("Authorization")
 		logger.LogInfo(authHeader)
 		if authHeader == "" {

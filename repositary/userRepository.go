@@ -251,3 +251,21 @@ func LogoutUser(username string) error {
 	logger.LogInfo("Logout :: Successfully logged out user: " + username)
 	return nil
 }
+
+func UserFetchFromDB(username string) (*models.UserResponse, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var user models.UserResponse
+	filter := bson.M{"username": username}
+
+	err := userCollection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New("user not found")
+		}
+		return nil, err
+	}
+
+	return &user, nil
+}
