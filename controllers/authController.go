@@ -120,7 +120,7 @@ func LoginController(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//password match
-	token, err := services.LoginUser(&user)
+	token, refreshtoken, err := services.LoginUser(&user)
 	if err != nil {
 		logger.LogInfo("LoginController :: error in service call " + err.Error())
 		models.ManageResponse(w, "Unable to login the User "+err.Error(), http.StatusBadRequest, nil, false)
@@ -128,8 +128,9 @@ func LoginController(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := &models.LoginResponse{
-		Username: user.Username,
-		Token:    token,
+		Username:     user.Username,
+		Token:        token,
+		RefreshToken: refreshtoken,
 	}
 
 	models.ManageResponse(w, "User LoggedIn successfully.", http.StatusOK, resp, true)

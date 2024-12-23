@@ -38,8 +38,9 @@ type LoginUser struct {
 }
 
 type LoginResponse struct {
-	Username string `json:"username" bson:"username" `
-	Token    string `json:"token" bson:"token" `
+	Username     string `json:"username" bson:"username" `
+	Token        string `json:"token" bson:"token" `
+	RefreshToken string `json:"refreshtoken" bson:"refreshtoken" `
 }
 
 type Role string

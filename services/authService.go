@@ -28,14 +28,14 @@ func CreateUser(user *models.User) error {
 	return nil
 }
 
-func LoginUser(user *models.LoginUser) (string, error) {
+func LoginUser(user *models.LoginUser) (string, string, error) {
 
 	// Delegate to database layer
 	logger.LogInfo("LoginUser :: fetching IsLoggedinUserExist")
-	token, err := repo.IsLoggedinUserExist(user)
+	token, refreshtoken, err := repo.IsLoggedinUserExist(user)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	logger.LogInfo("LoginUser ::  JWT token collected .")
-	return token, nil
+	return token, refreshtoken, nil
 }

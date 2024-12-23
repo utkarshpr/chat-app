@@ -12,17 +12,20 @@ import (
 	"github.com/golang-jwt/jwt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
 )
 
 // Declare the collection globally, but initialize it after InitMongoDB is called
 var userCollection *mongo.Collection
+var jwtCollection *mongo.Collection
 
 // Initialize userCollection after the MongoDB connection is established
 func InitRepository() {
 	database.InitMongoDB()
 
 	userCollection = database.GetCollection(os.Getenv("MONGO_TABLE_USER"))
+	jwtCollection = database.GetCollection(os.Getenv("MONGO_TABLE_JWT_STORE"))
 }
 
 // InsertUser inserts a new user into the database
@@ -53,7 +56,7 @@ func InsertUser(user *models.User) error {
 	return nil
 }
 
-func IsLoggedinUserExist(user *models.LoginUser) (string, error) {
+func IsLoggedinUserExist(user *models.LoginUser) (string, string, error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -64,9 +67,9 @@ func IsLoggedinUserExist(user *models.LoginUser) (string, error) {
 	err := userCollection.FindOne(ctx, filter).Decode(&existingUser)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return "", errors.New("user not found")
+			return "", "", errors.New("user not found")
 		}
-		return "", err
+		return "", "", err
 	}
 
 	logger.LogInfo("IsLoggedinUserExist :: user fetch from username : " + existingUser.Email)
@@ -75,7 +78,7 @@ func IsLoggedinUserExist(user *models.LoginUser) (string, error) {
 	err = CompareHashAndPassword(existingUser.Password, user.Password)
 
 	if err != nil {
-		return "", errors.New("invalid password")
+		return "", "", errors.New("invalid password")
 	}
 
 	logger.LogInfo("IsLoggedinUserExist :: Hashed password check success : ")
@@ -84,10 +87,19 @@ func IsLoggedinUserExist(user *models.LoginUser) (string, error) {
 	// You can use `jwt-go` or `golang-jwt/jwt` for this purpose.
 	token, err := generateJWT(existingUser)
 	if err != nil {
-		return "", err
+		return "", "", err
+	}
+	refreshtoken, err := generateRefreshTokenJWT(existingUser)
+	if err != nil {
+		return "", "", err
 	}
 
-	return token, nil
+	tok, ref, err := InsertJwtTokenForUser(token, refreshtoken, &existingUser)
+	if err != nil {
+		logger.LogInfo("IsLoggedinUserExist :: Unable to store JWT token in DB ")
+		return "", "", errors.New("unable to store jwt token in db ")
+	}
+	return tok, ref, nil
 }
 
 func generateJWT(user models.User) (string, error) {
@@ -109,6 +121,31 @@ func generateJWT(user models.User) (string, error) {
 	tokenString, err := token.SignedString(secretKey)
 	if err != nil {
 		logger.LogInfo("generateJWT :: error in  Create a new token with claims and sign it with the secret key" + err.Error())
+		return "", err
+	}
+
+	return tokenString, nil
+}
+
+func generateRefreshTokenJWT(user models.User) (string, error) {
+	// Create claims with user data
+	claims := jwt.MapClaims{
+		"user_id":    user.ID.Hex(), // User ID (in case you want to identify the user by ID)
+		"username":   user.Username, // User's username
+		"First Name": user.FirstName,
+		"Last Name":  user.LastName,
+		"role":       user.Role,                                 // User's email
+		"exp":        time.Now().Add(time.Hour * 24 * 7).Unix(), // Token expiration time (7 day)
+	}
+
+	logger.LogInfo("generateRefreshTokenJWT :: claim map formed ")
+
+	// Create a new token with claims and sign it with the secret key
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	secretKey := []byte(os.Getenv("JWT_SECRET_KEY"))
+	tokenString, err := token.SignedString(secretKey)
+	if err != nil {
+		logger.LogInfo("generateRefreshTokenJWT :: error in  Create a new token with claims and sign it with the secret key" + err.Error())
 		return "", err
 	}
 
@@ -141,4 +178,52 @@ func CompareHashAndPassword(fetchedUserPassword string, loginUserPassword string
 		return errors.New("invalid credentials") // Password does not match
 	}
 	return nil
+}
+
+func InsertJwtTokenForUser(token string, refreshToken string, user *models.User) (string, string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	filter := bson.M{"username": user.Username}
+
+	loginResp := &models.LoginResponse{
+		Username:     user.Username,
+		RefreshToken: refreshToken,
+		Token:        token,
+	}
+	update := bson.M{
+		"$set": loginResp, // Replace the document with the new data
+	}
+	opts := options.Update().SetUpsert(true)
+	_, err := jwtCollection.UpdateOne(ctx, filter, update, opts)
+	if err != nil {
+		logger.LogInfo("InsertJwtTokenForUser :: Unable to store JWT token in DB " + err.Error())
+		return "", "", err
+	}
+	return token, refreshToken, nil
+}
+
+func FetchJwtTokenForUser(username string) (*models.LoginResponse, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Define the filter to find the user's token
+	filter := bson.M{"username": username}
+
+	// Define a variable to hold the result
+	var loginResp models.LoginResponse
+
+	// Perform the query to find the document
+	err := jwtCollection.FindOne(ctx, filter).Decode(&loginResp)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			logger.LogInfo("FetchJwtTokenForUser :: No JWT token found for user: " + username)
+			return nil, errors.New("no JWT token found for the user")
+		}
+		logger.LogInfo("FetchJwtTokenForUser :: Error fetching JWT token: " + err.Error())
+		return nil, err
+	}
+
+	logger.LogInfo("FetchJwtTokenForUser :: Successfully fetched JWT token for user: " + username)
+	return &loginResp, nil
 }
