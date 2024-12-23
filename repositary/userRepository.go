@@ -28,6 +28,7 @@ func InitRepository() {
 	userCollection = database.GetCollection(os.Getenv("MONGO_TABLE_USER"))
 	jwtCollection = database.GetCollection(os.Getenv("MONGO_TABLE_JWT_STORE"))
 	contactCollection = database.GetCollection(os.Getenv("MONGO_TABLE_CONTACT"))
+	logger.LogInfo("Repository Initialized with MongoDB collections")
 }
 
 // InsertUser inserts a new user into the database
@@ -54,7 +55,7 @@ func InsertUser(user *models.User) error {
 	if err != nil {
 		return err
 	}
-
+	logger.LogInfo("InsertUser :: Successfully inserted user: " + user.Username)
 	return nil
 }
 
@@ -285,6 +286,7 @@ func UserAndProfileUpdate(username string, updateUser *models.UpdateUserAndProfi
 			logger.LogError("UserAndProfileUpdate :: user not found")
 			return nil, errors.New("user not found")
 		}
+		logger.LogError("UserAndProfileUpdate :: Error fetching user: " + err.Error())
 		return nil, err
 	}
 
@@ -328,6 +330,7 @@ func UserAndProfileUpdate(username string, updateUser *models.UpdateUserAndProfi
 	if err != nil {
 		return nil, err
 	}
+	logger.LogInfo("UserAndProfileUpdate :: Successfully updated user profile: " + username)
 
 	return &userResponse, nil
 }
@@ -418,12 +421,14 @@ func DeleteUser(username string) error {
 	deletedResult, err := userCollection.DeleteOne(ctx, filter)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
+			logger.LogError("user not found")
 			return errors.New("user not found")
 		}
 
 		return nil
 	}
 	if deletedResult.DeletedCount == 0 {
+		logger.LogError("user not found with username " + username)
 		return errors.New("user not found with username " + username)
 	}
 	logger.LogInfo("User Deleted from the database" + string(deletedResult.DeletedCount))

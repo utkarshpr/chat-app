@@ -45,7 +45,7 @@ func SignUpController(w http.ResponseWriter, r *http.Request) {
 			models.ManageResponse(w, "Error : "+"Invalid role provided. Allowed roles are 'ADMIN' or 'CLIENT'.", http.StatusBadRequest, nil, false)
 			return
 		}
-		logger.LogInfo("SignUpController :: error in decoding the body" + err.Error())
+		logger.LogError("SignUpController :: error in decoding the body" + err.Error())
 		models.ManageResponse(w, "error in decoding the body "+err.Error(), http.StatusBadRequest, nil, false)
 
 		return
@@ -54,7 +54,7 @@ func SignUpController(w http.ResponseWriter, r *http.Request) {
 	// validation
 	err = validation.SignUpUserValidation(&user)
 	if err != nil {
-		logger.LogInfo("SignUpController :: error in validation  " + err.Error())
+		logger.LogError("SignUpController :: error in validation  " + err.Error())
 		models.ManageResponse(w, "Error : "+err.Error(), http.StatusBadRequest, nil, false)
 		return
 	}
@@ -62,7 +62,7 @@ func SignUpController(w http.ResponseWriter, r *http.Request) {
 	// Call the service to handle sign-up logic
 	err = services.CreateUser(&user)
 	if err != nil {
-		logger.LogInfo("SignUpController :: error in service call " + err.Error())
+		logger.LogError("SignUpController :: error in service call " + err.Error())
 		models.ManageResponse(w, "Unable to create the User "+err.Error(), http.StatusBadRequest, nil, false)
 		return
 	}
@@ -106,7 +106,7 @@ func LoginController(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&user)
 	if err != nil {
-		logger.LogInfo("LoginController :: error in decoding the body")
+		logger.LogError("LoginController :: error in decoding the body")
 		models.ManageResponse(w, "error in decoding the body", http.StatusBadRequest, nil, false)
 
 		return
@@ -115,7 +115,7 @@ func LoginController(w http.ResponseWriter, r *http.Request) {
 	// validation
 	err = validation.LoginUserValidation(&user)
 	if err != nil {
-		logger.LogInfo("LoginController :: error in validation  " + err.Error())
+		logger.LogError("LoginController :: error in validation  " + err.Error())
 		models.ManageResponse(w, "Error : "+err.Error(), http.StatusBadRequest, nil, false)
 		return
 	}
@@ -123,7 +123,7 @@ func LoginController(w http.ResponseWriter, r *http.Request) {
 	//password match
 	token, refreshtoken, err := services.LoginUser(&user)
 	if err != nil {
-		logger.LogInfo("LoginController :: error in service call " + err.Error())
+		logger.LogError("LoginController :: error in service call " + err.Error())
 		models.ManageResponse(w, "Unable to login the User "+err.Error(), http.StatusBadRequest, nil, false)
 		return
 	}
