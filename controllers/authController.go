@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"real-time-chat-app/logger"
 	"real-time-chat-app/models"
@@ -170,7 +169,7 @@ func LogoutController(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
-	fmt.Println(userClaims)
+
 	claims, ok := userClaims.(jwt.MapClaims)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{

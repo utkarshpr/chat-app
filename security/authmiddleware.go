@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"os"
 	"real-time-chat-app/logger"
+	"real-time-chat-app/models"
+	repo "real-time-chat-app/repositary"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -41,10 +43,27 @@ func GinAuthMiddleware() gin.HandlerFunc {
 		}
 
 		// Extract claims and store them in context
-		if claims, ok := token.Claims.(jwt.MapClaims); ok {
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if ok {
 			c.Set("user", claims)
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to parse claims"})
+			models.ManageResponse(c.Writer, "Unable to parse claims", http.StatusBadRequest, nil, false)
+			c.Abort()
+			return
+		}
+
+		username, ok := claims["username"].(string)
+		if !ok || username == "" {
+			models.ManageResponse(c.Writer, "Invalid claims: username missing", http.StatusBadRequest, nil, false)
+			c.Abort()
+			return
+		}
+
+		// Check if the session exists in jwtCollection
+		_, err = repo.FetchJwtTokenForUser(username)
+		if err != nil {
+			logger.LogInfo("Session not found for user: " + username)
+			models.ManageResponse(c.Writer, "Session expired or Login again", http.StatusNonAuthoritativeInfo, nil, false)
 			c.Abort()
 			return
 		}
