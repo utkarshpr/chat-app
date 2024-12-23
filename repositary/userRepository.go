@@ -19,6 +19,7 @@ import (
 // Declare the collection globally, but initialize it after InitMongoDB is called
 var userCollection *mongo.Collection
 var jwtCollection *mongo.Collection
+var contactCollection *mongo.Collection
 
 // Initialize userCollection after the MongoDB connection is established
 func InitRepository() {
@@ -26,6 +27,7 @@ func InitRepository() {
 
 	userCollection = database.GetCollection(os.Getenv("MONGO_TABLE_USER"))
 	jwtCollection = database.GetCollection(os.Getenv("MONGO_TABLE_JWT_STORE"))
+	contactCollection = database.GetCollection(os.Getenv("MONGO_TABLE_CONTACT"))
 }
 
 // InsertUser inserts a new user into the database
