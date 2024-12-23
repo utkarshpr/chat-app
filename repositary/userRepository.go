@@ -98,7 +98,7 @@ func IsLoggedinUserExist(user *models.LoginUser) (string, string, error) {
 
 	tok, ref, err := InsertJwtTokenForUser(token, refreshtoken, &existingUser)
 	if err != nil {
-		logger.LogInfo("IsLoggedinUserExist :: Unable to store JWT token in DB ")
+		logger.LogError("IsLoggedinUserExist :: Unable to store JWT token in DB ")
 		return "", "", errors.New("unable to store jwt token in db ")
 	}
 	return tok, ref, nil
@@ -122,7 +122,7 @@ func generateJWT(user models.User) (string, error) {
 	secretKey := []byte(os.Getenv("JWT_SECRET_KEY"))
 	tokenString, err := token.SignedString(secretKey)
 	if err != nil {
-		logger.LogInfo("generateJWT :: error in  Create a new token with claims and sign it with the secret key" + err.Error())
+		logger.LogError("generateJWT :: error in  Create a new token with claims and sign it with the secret key" + err.Error())
 		return "", err
 	}
 
@@ -147,7 +147,7 @@ func generateRefreshTokenJWT(user models.User) (string, error) {
 	secretKey := []byte(os.Getenv("JWT_SECRET_KEY"))
 	tokenString, err := token.SignedString(secretKey)
 	if err != nil {
-		logger.LogInfo("generateRefreshTokenJWT :: error in  Create a new token with claims and sign it with the secret key" + err.Error())
+		logger.LogError("generateRefreshTokenJWT :: error in  Create a new token with claims and sign it with the secret key" + err.Error())
 		return "", err
 	}
 
@@ -199,7 +199,7 @@ func InsertJwtTokenForUser(token string, refreshToken string, user *models.User)
 	opts := options.Update().SetUpsert(true)
 	_, err := jwtCollection.UpdateOne(ctx, filter, update, opts)
 	if err != nil {
-		logger.LogInfo("InsertJwtTokenForUser :: Unable to store JWT token in DB " + err.Error())
+		logger.LogError("InsertJwtTokenForUser :: Unable to store JWT token in DB " + err.Error())
 		return "", "", err
 	}
 	return token, refreshToken, nil
@@ -219,10 +219,10 @@ func FetchJwtTokenForUser(username string) (*models.LoginResponse, error) {
 	err := jwtCollection.FindOne(ctx, filter).Decode(&loginResp)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			logger.LogInfo("FetchJwtTokenForUser :: No JWT token found for user: " + username)
+			logger.LogError("FetchJwtTokenForUser :: No JWT token found for user: " + username)
 			return nil, errors.New("no JWT token found for the user")
 		}
-		logger.LogInfo("FetchJwtTokenForUser :: Error fetching JWT token: " + err.Error())
+		logger.LogError("FetchJwtTokenForUser :: Error fetching JWT token: " + err.Error())
 		return nil, err
 	}
 
@@ -240,13 +240,13 @@ func LogoutUser(username string) error {
 	// Attempt to delete the user's token document from the collection
 	result, err := jwtCollection.DeleteOne(ctx, filter)
 	if err != nil {
-		logger.LogInfo("Logout :: Error while removing JWT token from DB for user: " + username + " - " + err.Error())
+		logger.LogError("Logout :: Error while removing JWT token from DB for user: " + username + " - " + err.Error())
 		return errors.New("failed to logout the user")
 	}
 
 	// Check if any document was deleted
 	if result.DeletedCount == 0 {
-		logger.LogInfo("Logout :: No JWT token found to remove for user: " + username)
+		logger.LogError("Logout :: No JWT token found to remove for user: " + username)
 		return errors.New("no active session found for the user")
 	}
 
@@ -282,6 +282,7 @@ func UserAndProfileUpdate(username string, updateUser *models.UpdateUserAndProfi
 	err := userCollection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
+			logger.LogError("UserAndProfileUpdate :: user not found")
 			return nil, errors.New("user not found")
 		}
 		return nil, err

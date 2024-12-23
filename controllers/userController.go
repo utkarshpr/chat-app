@@ -43,7 +43,7 @@ func FetchUserController(c *gin.Context) {
 
 	userResponse, err := services.UserFetch(username)
 	if err != nil {
-		logger.LogInfo("FetchUserController :: error  while fetching the user ")
+		logger.LogError("FetchUserController :: error  while fetching the user ")
 		models.ManageResponse(c.Writer, "error while fetching the user :: "+err.Error(), http.StatusBadRequest, nil, false)
 		c.Abort()
 		return
@@ -86,7 +86,7 @@ func UpdateUserAndProfile(c *gin.Context) {
 	decoder := json.NewDecoder(c.Request.Body)
 	err := decoder.Decode(&user)
 	if err != nil {
-		logger.LogInfo("UpdateUserAndProfile :: error in decoding the body" + err.Error())
+		logger.LogError("UpdateUserAndProfile :: error in decoding the body" + err.Error())
 		models.ManageResponse(c.Writer, "error in decoding the body "+err.Error(), http.StatusBadRequest, nil, false)
 
 		return
@@ -94,7 +94,7 @@ func UpdateUserAndProfile(c *gin.Context) {
 
 	userResponse, err := services.UserAndProfileUpdate(username, user)
 	if err != nil {
-		logger.LogInfo("UpdateUserAndProfile :: error  while updating the user ")
+		logger.LogError("UpdateUserAndProfile :: error  while updating the user ")
 		models.ManageResponse(c.Writer, "error while updating the user :: "+err.Error(), http.StatusBadRequest, nil, false)
 		c.Abort()
 		return
@@ -125,7 +125,7 @@ func DeleteUserController(c *gin.Context) {
 
 		err := services.DeleteUser(username)
 		if err != nil {
-			logger.LogInfo("DeleteUserController :: error  while deleting the user ")
+			logger.LogError("DeleteUserController :: error  while deleting the user ")
 			models.ManageResponse(c.Writer, "error while deleting the user :: "+err.Error(), http.StatusBadRequest, nil, false)
 			c.Abort()
 			return

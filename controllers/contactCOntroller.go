@@ -42,6 +42,7 @@ func AddAndUpdateCOntact(c *gin.Context) {
 	contactResponse, err := services.HandleContactRequest(contactRequest, claims)
 
 	if err != nil {
+		logger.LogInfo("AddAndUpdateCOntact ::error in sending the request" + err.Error())
 		models.ManageResponse(c.Writer, "error in sending the request "+err.Error(), http.StatusBadRequest, nil, false)
 		return
 	}

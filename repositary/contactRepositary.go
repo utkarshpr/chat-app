@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"errors"
+	"real-time-chat-app/logger"
 	"real-time-chat-app/models"
 	"time"
 
@@ -25,6 +26,7 @@ func HandleContactRequest(contactRequest *models.ContactRequest, claims jwt.MapC
 	var existingRequest models.ContactRequest
 	err := contactCollection.FindOne(ctx, filter).Decode(&existingRequest)
 	if err != nil && err != mongo.ErrNoDocuments {
+		logger.LogError("HandleContactRequest ::error in sending the request" + err.Error())
 		return "", errors.New("error finding the contact request" + err.Error())
 	}
 
@@ -35,6 +37,7 @@ func HandleContactRequest(contactRequest *models.ContactRequest, claims jwt.MapC
 			contactRequest.Status = "pending" // Ensure status is set to "pending"
 			_, err := contactCollection.InsertOne(ctx, contactRequest)
 			if err != nil {
+				logger.LogError("HandleContactRequest ::error sending contact request" + err.Error())
 				return "", errors.New("error sending contact request")
 			}
 			return "Contact request sent successfully", nil
@@ -58,6 +61,7 @@ func HandleContactRequest(contactRequest *models.ContactRequest, claims jwt.MapC
 
 		_, err = contactCollection.UpdateOne(ctx, filter, update)
 		if err != nil {
+			logger.LogError("HandleContactRequest ::error updating contact request to pending" + err.Error())
 			return "", errors.New("error updating contact request to pending")
 		}
 
@@ -82,6 +86,7 @@ func HandleContactRequest(contactRequest *models.ContactRequest, claims jwt.MapC
 
 		_, err = contactCollection.UpdateOne(ctx, filter, update)
 		if err != nil {
+			logger.LogError("HandleContactRequest ::error accepting contact request" + err.Error())
 			return "", errors.New("error accepting contact request")
 		}
 
@@ -102,6 +107,7 @@ func HandleContactRequest(contactRequest *models.ContactRequest, claims jwt.MapC
 
 		_, err = contactCollection.UpdateOne(ctx, filter, update)
 		if err != nil {
+			logger.LogInfo("HandleContactRequest ::error rejecting contact request" + err.Error())
 			return "", errors.New("error rejecting contact request")
 		}
 
