@@ -157,20 +157,22 @@ func generateRefreshTokenJWT(user models.User) (string, error) {
 
 // FetchUserByUsername fetches a user from the database using their username.
 func FetchUserByUsername(username string) (*models.User, error) {
+	logger.LogInfo("FetchUserByUsername :: starting")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	filter := bson.M{"username": username}
 
 	var user models.User
-	err := database.GetCollection("users").FindOne(ctx, filter).Decode(&user)
+	err := database.GetCollection(os.Getenv("MONGO_TABLE_USER")).FindOne(ctx, filter).Decode(&user)
 	if err != nil {
+		logger.LogError("User not found " + err.Error())
 		if err == mongo.ErrNoDocuments {
 			return nil, errors.New("user not found")
 		}
 		return nil, err
 	}
-
+	logger.LogInfo("FetchUserByUsername :: ending ")
 	return &user, nil
 }
 

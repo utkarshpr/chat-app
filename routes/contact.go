@@ -18,6 +18,15 @@ func ContactRoutes(r *gin.Engine) {
 				controllers.AddAndUpdateCOntact(c)
 			})
 		}
+
+		contact.Use(security.GinAuthMiddleware())
+		{
+			contact.GET("/get", func(c *gin.Context) {
+
+				// Call SignUpController with ResponseWriter and Request
+				controllers.GetListofContact(c)
+			})
+		}
 	}
 
 }
