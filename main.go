@@ -28,7 +28,7 @@ func main() {
 
 	// Register authentication routes
 	routes.AuthRoutes(r)
-	routes.SecureRoutes(r)
+	//routes.SecureRoutes(r)
 	routes.UserRoutes(r)
 	routes.ContactRoutes(r)
 

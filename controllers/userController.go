@@ -25,15 +25,16 @@ import (
 // @Failure 406 {object} models.ErrorResponse "Username not provided in query parameter"
 // @Router /fetchUser [get]
 func FetchUserController(c *gin.Context) {
-
+	logger.LogInfo("FetchUserController :: started")
 	if c.Request.Method != "GET" {
-		logger.LogInfo("FetchUserController :: error GET method required")
+		logger.LogError("FetchUserController :: error GET method required")
 		models.ManageResponse(c.Writer, "GET method required", http.StatusMethodNotAllowed, nil, false)
 		return
 	}
 
 	username := c.DefaultQuery("username", "")
 	if len(username) < 1 {
+		logger.LogError("please provide the username in query parameter")
 		models.ManageResponse(c.Writer, "please provide the username in query parameter ", http.StatusNotAcceptable, nil, false)
 		c.Abort()
 		return
@@ -48,7 +49,7 @@ func FetchUserController(c *gin.Context) {
 		c.Abort()
 		return
 	}
-
+	logger.LogInfo("FetchUserController ::ended")
 	models.ManageResponse(c.Writer, "User fetched succesfully", http.StatusOK, userResponse, true)
 
 }
@@ -69,19 +70,21 @@ func FetchUserController(c *gin.Context) {
 // @Router /updateUser [post]
 func UpdateUserAndProfile(c *gin.Context) {
 
+	logger.LogInfo("UpdateUserAndProfile :: started")
 	if c.Request.Method != "POST" {
-		logger.LogInfo("UpdateUserAndProfile :: error POST method required")
+		logger.LogError("UpdateUserAndProfile :: error POST method required")
 		models.ManageResponse(c.Writer, "POST method required", http.StatusMethodNotAllowed, nil, false)
 		return
 	}
 
 	username := c.DefaultQuery("username", "")
 	if len(username) < 1 {
+		logger.LogError("please provide the username in query parameter ")
 		models.ManageResponse(c.Writer, "please provide the username in query parameter ", http.StatusNotAcceptable, nil, false)
 		c.Abort()
 		return
 	}
-
+	logger.LogInfo("UpdateUserAndProfile :: username in query param " + username)
 	var user *models.UpdateUserAndProfile
 	decoder := json.NewDecoder(c.Request.Body)
 	err := decoder.Decode(&user)
@@ -99,25 +102,27 @@ func UpdateUserAndProfile(c *gin.Context) {
 		c.Abort()
 		return
 	}
-
+	logger.LogInfo("UpdateUserAndProfile :: ended ")
 	models.ManageResponse(c.Writer, "User fetched succesfully", http.StatusOK, userResponse, true)
 
 }
 
 func DeleteUserController(c *gin.Context) {
+	logger.LogInfo("DeleteUserController :: started")
 	if c.Request.Method != "DELETE" {
-		logger.LogInfo("DeleteUserController :: error DELETE method required")
+		logger.LogError("DeleteUserController :: error DELETE method required")
 		models.ManageResponse(c.Writer, "DELETE method required", http.StatusMethodNotAllowed, nil, false)
 		return
 	}
 
 	username := c.DefaultQuery("username", "")
 	if len(username) < 1 {
+		logger.LogError("please provide the username in query parameter ")
 		models.ManageResponse(c.Writer, "please provide the username in query parameter ", http.StatusNotAcceptable, nil, false)
 		c.Abort()
 		return
 	}
-
+	logger.LogInfo("DeleteUserController :: username is " + username)
 	claims := security.GetClaims(c)
 	role := claims["role"].(string)
 
@@ -130,9 +135,10 @@ func DeleteUserController(c *gin.Context) {
 			c.Abort()
 			return
 		}
-
+		logger.LogInfo("DeleteUserController :: ended ")
 		models.ManageResponse(c.Writer, "User Deleted succesfully", http.StatusOK, nil, true)
 	} else {
+		logger.LogError("DeleteUserController :: ended NON ADMIN")
 		models.ManageResponse(c.Writer, "User cannot be deleted :: ADMIN role required ", http.StatusBadRequest, nil, false)
 	}
 }

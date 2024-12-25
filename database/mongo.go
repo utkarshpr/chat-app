@@ -39,6 +39,6 @@ func InitMongoDB() {
 func GetCollection(collectionName string) *mongo.Collection {
 	// Replace `chat_app_db` with your database name
 	database := mongoClient.Database(os.Getenv("MONGO_DATABASE"))
-	fmt.Print(database)
+	logger.LogInfo("GetCollection ... " + database.Name())
 	return database.Collection(collectionName)
 }

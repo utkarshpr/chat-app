@@ -28,9 +28,10 @@ import (
 // @Router /auth/signup [post]
 func SignUpController(w http.ResponseWriter, r *http.Request) {
 
+	logger.LogInfo("SignUpController :: started")
 	// Only allow POST method
 	if r.Method != "POST" {
-		logger.LogInfo("SignUpController :: error POST method required")
+		logger.LogError("SignUpController :: error POST method required")
 		models.ManageResponse(w, "POST method required", http.StatusMethodNotAllowed, nil, false)
 		return
 	}
@@ -42,6 +43,7 @@ func SignUpController(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&user)
 	if err != nil {
 		if strings.HasPrefix(err.Error(), "invalid role:") {
+			logger.LogError("SignUpController ::Invalid role provided. Allowed roles are 'ADMIN' or 'CLIENT")
 			models.ManageResponse(w, "Error : "+"Invalid role provided. Allowed roles are 'ADMIN' or 'CLIENT'.", http.StatusBadRequest, nil, false)
 			return
 		}
@@ -76,6 +78,7 @@ func SignUpController(w http.ResponseWriter, r *http.Request) {
 		Address:     user.Address,
 		DateOfBirth: user.DateOfBirth,
 	}
+	logger.LogInfo("SignUpController :: ended")
 	models.ManageResponse(w, "User created successfully.", http.StatusAccepted, responseModel, true)
 }
 
@@ -94,8 +97,9 @@ func SignUpController(w http.ResponseWriter, r *http.Request) {
 // @Router /auth/login [post]
 func LoginController(w http.ResponseWriter, r *http.Request) {
 
+	logger.LogInfo("LoginController :: started")
 	if r.Method != "POST" {
-		logger.LogInfo("LoginController :: error POST method required")
+		logger.LogError("LoginController :: error POST method required")
 		models.ManageResponse(w, "POST method required", http.StatusMethodNotAllowed, nil, false)
 		return
 	}
@@ -134,6 +138,7 @@ func LoginController(w http.ResponseWriter, r *http.Request) {
 		RefreshToken: refreshtoken,
 	}
 
+	logger.LogInfo("LoginController :: ended")
 	models.ManageResponse(w, "User LoggedIn successfully.", http.StatusOK, resp, true)
 
 }
@@ -158,33 +163,35 @@ func LoginController(w http.ResponseWriter, r *http.Request) {
 // @Router       /auth/logout [post]
 func LogoutController(c *gin.Context) {
 
+	logger.LogInfo("LogoutController :: started")
 	if c.Request.Method != "POST" {
-		logger.LogInfo("LogoutController :: error POST method required")
+		logger.LogError("LogoutController :: error POST method required")
 		models.ManageResponse(c.Writer, "POST method required", http.StatusMethodNotAllowed, nil, false)
 		return
 	}
 
 	userClaims, exists := c.Get("user")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		logger.LogInfo("LogoutController :: unauthorized..")
+		models.ManageResponse(c.Writer, "Unauthorized", http.StatusUnauthorized, nil, false)
 		return
 	}
 
 	claims, ok := userClaims.(jwt.MapClaims)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Unable to process user claims.",
-			"status":  false,
-		})
+		logger.LogInfo("LogoutController :: unable to process claim")
+		models.ManageResponse(c.Writer, "Unable to process claim", http.StatusUnauthorized, nil, false)
 		return
 	}
 	username := claims["username"].(string)
 
 	err := services.LogoutUser(username)
 	if err != nil {
+		logger.LogInfo("LogoutController :: unable to log out " + err.Error())
 		models.ManageResponse(c.Writer, "Unableto Logout", http.StatusBadRequest, nil, false)
 		return
 	}
+	logger.LogInfo("LogoutController :: ended")
 	models.ManageResponse(c.Writer, "Logout successfuly ", http.StatusAccepted, nil, true)
 
 }

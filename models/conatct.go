@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"real-time-chat-app/logger"
 	"time"
 )
 
@@ -35,6 +36,7 @@ const (
 
 // IsValidStatus validates the status value.
 func (car *ContactRequest) IsValidStatus() bool {
+	logger.InitLogger("ContactRequest ::IsValidStatus ")
 	switch car.Status {
 	case StatusPending, StatusAccepted, StatusRejected:
 		return true
@@ -49,6 +51,7 @@ const (
 
 // IsValid checks if the action is valid.
 func (car *ContactActionRequest) IsValid() error {
+	logger.LogInfo("ContactActionRequest :: IsValid")
 	switch car.Action {
 	case ActionRemove, ActionBlock:
 		return nil

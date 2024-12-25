@@ -15,6 +15,7 @@ func SendMessage(message *models.Message) (*models.Message, error) {
 
 	err := repo.SaveMessage(message)
 	if err != nil {
+		logger.LogError("error in saveing the message ")
 		return nil, err
 	}
 

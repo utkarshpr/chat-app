@@ -35,6 +35,7 @@ func InitRepository() {
 
 // InsertUser inserts a new user into the database
 func InsertUser(user *models.User) error {
+	logger.LogInfo("InsertUser repo:: started ")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -47,6 +48,7 @@ func InsertUser(user *models.User) error {
 
 	count, err := userCollection.CountDocuments(ctx, filter)
 	if err != nil {
+		logger.LogError("error in inserting user " + err.Error())
 		return err
 	}
 	if count > 0 {
@@ -55,14 +57,15 @@ func InsertUser(user *models.User) error {
 
 	_, err = userCollection.InsertOne(ctx, user)
 	if err != nil {
+		logger.LogError("error in inserting user " + err.Error())
 		return err
 	}
-	logger.LogInfo("InsertUser :: Successfully inserted user: " + user.Username)
+	logger.LogInfo("InsertUser :: ended ,Successfully inserted user: " + user.Username)
 	return nil
 }
 
 func IsLoggedinUserExist(user *models.LoginUser) (string, string, error) {
-
+	logger.LogInfo("IsLoggedinUserExist :: started")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -83,6 +86,7 @@ func IsLoggedinUserExist(user *models.LoginUser) (string, string, error) {
 	err = CompareHashAndPassword(existingUser.Password, user.Password)
 
 	if err != nil {
+		logger.LogError("IsLoggedinUserExist ::invalid password :CompareHashAndPassword ")
 		return "", "", errors.New("invalid password")
 	}
 
@@ -92,10 +96,12 @@ func IsLoggedinUserExist(user *models.LoginUser) (string, string, error) {
 	// You can use `jwt-go` or `golang-jwt/jwt` for this purpose.
 	token, err := generateJWT(existingUser)
 	if err != nil {
+		logger.LogError("IsLoggedinUserExist :: Unable to get JWT token ")
 		return "", "", err
 	}
 	refreshtoken, err := generateRefreshTokenJWT(existingUser)
 	if err != nil {
+		logger.LogError("IsLoggedinUserExist :: Unable to get refresh JWT token  ")
 		return "", "", err
 	}
 
@@ -104,6 +110,7 @@ func IsLoggedinUserExist(user *models.LoginUser) (string, string, error) {
 		logger.LogError("IsLoggedinUserExist :: Unable to store JWT token in DB ")
 		return "", "", errors.New("unable to store jwt token in db ")
 	}
+	logger.LogInfo("IsLoggedinUserExist :: ended")
 	return tok, ref, nil
 }
 
@@ -260,6 +267,7 @@ func LogoutUser(username string) error {
 }
 
 func UserFetchFromDB(username string) (*models.UserResponse, error) {
+	logger.LogInfo("UserFetchFromDB :: started")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -269,15 +277,17 @@ func UserFetchFromDB(username string) (*models.UserResponse, error) {
 	err := userCollection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
+			logger.LogError("User not found " + err.Error())
 			return nil, errors.New("user not found")
 		}
 		return nil, err
 	}
-
+	logger.LogInfo("UserFetchFromDB :: ended")
 	return &user, nil
 }
 
 func UserAndProfileUpdate(username string, updateUser *models.UpdateUserAndProfile) (*models.UserResponse, error) {
+	logger.LogInfo("UserAndProfileUpdate :: started")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -325,6 +335,7 @@ func UserAndProfileUpdate(username string, updateUser *models.UpdateUserAndProfi
 
 	_, err = userCollection.UpdateOne(ctx, filter, update)
 	if err != nil {
+		logger.LogError("error in updating user data " + err.Error())
 		return nil, err
 	}
 
@@ -332,10 +343,11 @@ func UserAndProfileUpdate(username string, updateUser *models.UpdateUserAndProfi
 	// Fetch the updated user data
 	err = userCollection.FindOne(ctx, filter).Decode(&userResponse)
 	if err != nil {
+		logger.LogError("error in finding / fetching updated user data " + err.Error())
 		return nil, err
 	}
 	logger.LogInfo("UserAndProfileUpdate :: Successfully updated user profile: " + username)
-
+	logger.LogInfo("UserAndProfileUpdate :: ended")
 	return &userResponse, nil
 }
 
@@ -417,6 +429,7 @@ func handleInvalidDatainUpdate(updateUser *models.UpdateUserAndProfile, user *mo
 }
 
 func DeleteUser(username string) error {
+	logger.LogInfo("DeleteUser ::  started")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -436,5 +449,6 @@ func DeleteUser(username string) error {
 		return errors.New("user not found with username " + username)
 	}
 	logger.LogInfo("User Deleted from the database" + string(deletedResult.DeletedCount))
+	logger.LogInfo("DeleteUser ::  started")
 	return nil
 }

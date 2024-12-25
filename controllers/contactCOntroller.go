@@ -31,7 +31,7 @@ import (
 // @Failure      500 {object} gin.H{"message": "Error processing the request", "status": false}
 // @Router       /contacts/add [post]
 func AddAndUpdateCOntact(c *gin.Context) {
-
+	logger.LogInfo("AddAndUpdateCOntact :: started")
 	if c.Request.Method != "POST" {
 		logger.LogError("AddAndUpdateCOntact :: error POST method required")
 		models.ManageResponse(c.Writer, "POST method required", http.StatusMethodNotAllowed, nil, false)
@@ -64,6 +64,7 @@ func AddAndUpdateCOntact(c *gin.Context) {
 		models.ManageResponse(c.Writer, "error in sending the request "+err.Error(), http.StatusBadRequest, nil, false)
 		return
 	}
+	logger.LogInfo("AddAndUpdateCOntact :: ended")
 	models.ManageResponse(c.Writer, contactResponse, http.StatusOK, nil, true)
 
 }
@@ -88,6 +89,7 @@ func AddAndUpdateCOntact(c *gin.Context) {
 
 func GetListofContact(c *gin.Context) {
 
+	logger.LogInfo("GetListofContact :: started")
 	if c.Request.Method != "GET" {
 		logger.LogError("GetListofContact :: error GET method required")
 		models.ManageResponse(c.Writer, "GET method required", http.StatusMethodNotAllowed, nil, false)
@@ -166,7 +168,7 @@ func BlockOrRemoveContact(c *gin.Context) {
 		return
 
 	}
-	logger.LogInfo("BlockOrRemoveContact ::   " + contactResponse)
+	logger.LogInfo("BlockOrRemoveContact :: ended   " + contactResponse)
 	models.ManageResponse(c.Writer, contactResponse, http.StatusOK, nil, true)
 
 }

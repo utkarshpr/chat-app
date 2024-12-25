@@ -23,7 +23,7 @@ func SaveMessage(message *models.Message) error {
 		logger.LogInfo("SendMessage repo :: error " + err.Error())
 		return err
 	}
-	logger.LogInfo("SendMessage repo :: started")
+	logger.LogInfo("SendMessage repo :: ended")
 	return nil
 }
 
@@ -67,6 +67,6 @@ func GetMessage(username string, reciever string) ([]*models.GetMessage, error) 
 		return nil, errors.New("error iterating through contacts: " + err.Error())
 	}
 
-	logger.LogInfo("GetMessage repo :: started")
+	logger.LogInfo("GetMessage repo :: ended")
 	return contacts, nil
 }

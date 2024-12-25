@@ -13,7 +13,7 @@ import (
 )
 
 func HandleContactRequest(contactRequest *models.ContactRequest, claims jwt.MapClaims) (string, error) {
-
+	logger.LogInfo("HandleContactRequest REPO :: started")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -44,6 +44,7 @@ func HandleContactRequest(contactRequest *models.ContactRequest, claims jwt.MapC
 
 	switch contactRequest.Status {
 	case "pending":
+		logger.LogInfo("pending status")
 		if err == mongo.ErrNoDocuments {
 			// If no existing request is found, create a new one with "pending" status
 			contactRequest.Status = "pending" // Ensure status is set to "pending"
@@ -76,10 +77,11 @@ func HandleContactRequest(contactRequest *models.ContactRequest, claims jwt.MapC
 			logger.LogError("HandleContactRequest ::error updating contact request to pending" + err.Error())
 			return "", errors.New("error updating contact request to pending")
 		}
-
+		logger.LogInfo("HandleContactRequest REPO :: ended")
 		return "Contact request updated to pending", nil
 
 	case "accepted":
+		logger.LogInfo("accepted status")
 		// Ensure the request is in pending state before accepting
 		if existingRequest.Status == "rejected" {
 			return "already rejected, cannot accept", nil
@@ -115,6 +117,7 @@ func HandleContactRequest(contactRequest *models.ContactRequest, claims jwt.MapC
 		}
 
 	case "rejected":
+		logger.LogInfo("rejected status")
 		// Ensure the request is either pending or accepted before rejecting
 		if existingRequest.Status == "rejected" {
 			return "contact request already rejected", nil
@@ -150,8 +153,10 @@ func HandleContactRequest(contactRequest *models.ContactRequest, claims jwt.MapC
 		}
 
 	default:
+		logger.LogInfo("HandleContactRequest REPO :: ended")
 		return "", errors.New("invalid status provided")
 	}
+
 }
 
 func GetAllContactfromUser(username string) ([]*models.ContactRequest, error) {
@@ -191,7 +196,7 @@ func GetAllContactfromUser(username string) ([]*models.ContactRequest, error) {
 		return nil, errors.New("error iterating through contacts: " + err.Error())
 	}
 
-	logger.LogInfo("GetAllContactfromUser :: successfully retrieved contacts")
+	logger.LogInfo("GetAllContactfromUser ::ended , successfully retrieved contacts")
 	return contacts, nil
 }
 
