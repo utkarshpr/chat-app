@@ -16,9 +16,8 @@ import (
 // GinAuthMiddleware is a middleware that checks if the JWT token is valid
 func GinAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		logger.LogInfo("GinAuthMiddleware ...")
+		logger.LogInfo("GinAuthMiddleware ... :: started")
 		authHeader := c.GetHeader("Authorization")
-		logger.LogInfo(authHeader)
 		if authHeader == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header missing"})
 			c.Abort()
@@ -30,7 +29,7 @@ func GinAuthMiddleware() gin.HandlerFunc {
 		// Parse and validate the JWT token
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				logger.LogInfo("unexpected signing method")
+				logger.LogError("unexpected signing method")
 				return nil, fmt.Errorf("unexpected signing method")
 			}
 			return secretKey, nil
@@ -61,7 +60,7 @@ func GinAuthMiddleware() gin.HandlerFunc {
 		// Check if the session exists in jwtCollection
 		_, err = repo.FetchJwtTokenForUser(username)
 		if err != nil {
-			logger.LogInfo("Session not found for user: " + username)
+			logger.LogError("Session not found for user: " + username)
 			models.ManageResponse(c.Writer, "Session expired or Login again", http.StatusNonAuthoritativeInfo, nil, false)
 			c.Abort()
 			return
@@ -83,13 +82,13 @@ func GinAuthMiddleware() gin.HandlerFunc {
 		// 	return
 		// }
 		// Store the role and claims in the context
-
+		logger.LogInfo("GinAuthMiddleware ... :: ended")
 	}
 }
 
 func GetClaims(c *gin.Context) jwt.MapClaims {
 	authHeader := c.GetHeader("Authorization")
-	logger.LogInfo(authHeader)
+	logger.LogInfo("GetClaims :: started")
 	if authHeader == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header missing"})
 		c.Abort()
@@ -119,6 +118,7 @@ func GetClaims(c *gin.Context) jwt.MapClaims {
 		c.Abort()
 		return nil
 	}
+	logger.LogInfo("GetClaims :: ended")
 	return claims
 
 }

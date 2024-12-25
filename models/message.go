@@ -15,3 +15,9 @@ type MessageStatusUpdate struct {
 	MessageID string `json:"message_id"`
 	Status    string `json:"status"`
 }
+
+type GetMessage struct {
+	Content   string `json:"content" bson:"content"`
+	MediaURL  string `json:"media_url,omitempty" bson:"media_url,omitempty"`
+	Timestamp string `json:"timestamp" bson:"timestamp"`
+}

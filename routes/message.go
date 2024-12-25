@@ -25,6 +25,11 @@ func MessageRoute(r *gin.Engine) {
 				// Call SignUpController with ResponseWriter and Request
 				controllers.MessageSentController(c)
 			})
+			user.GET("/get", func(c *gin.Context) {
+
+				// Call SignUpController with ResponseWriter and Request
+				controllers.MessageGetAllController(c)
+			})
 		}
 
 	}

@@ -22,3 +22,16 @@ func SendMessage(message *models.Message) (*models.Message, error) {
 	logger.LogInfo("SendMessage service :: ended")
 	return message, nil
 }
+
+func GetMessage(username string, reciever string) ([]*models.GetMessage, error) {
+	logger.LogInfo("GetMessage service :: started")
+	resp, err := repo.GetMessage(username, reciever)
+	if err != nil {
+		logger.LogError(" GetMessage :: Error in getting message")
+		return nil, err
+	}
+
+	logger.LogInfo("GetMessage service :: ended")
+	return resp, nil
+
+}
