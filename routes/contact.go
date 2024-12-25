@@ -17,16 +17,19 @@ func ContactRoutes(r *gin.Engine) {
 				// Call SignUpController with ResponseWriter and Request
 				controllers.AddAndUpdateCOntact(c)
 			})
-		}
 
-		contact.Use(security.GinAuthMiddleware())
-		{
 			contact.GET("/get", func(c *gin.Context) {
 
 				// Call SignUpController with ResponseWriter and Request
 				controllers.GetListofContact(c)
+
+			})
+
+			contact.POST("/action", func(c *gin.Context) {
+				controllers.BlockOrRemoveContact(c)
 			})
 		}
+
 	}
 
 }

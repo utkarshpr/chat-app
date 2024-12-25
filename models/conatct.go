@@ -53,6 +53,6 @@ func (car *ContactActionRequest) IsValid() error {
 	case ActionRemove, ActionBlock:
 		return nil
 	default:
-		return errors.New("invalid action value")
+		return errors.New("invalid action value : remove or block")
 	}
 }

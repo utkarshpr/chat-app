@@ -123,3 +123,50 @@ func GetListofContact(c *gin.Context) {
 	models.ManageResponse(c.Writer, "successfully fetched the contact of user : "+username, http.StatusOK, contactResponse, true)
 
 }
+
+func BlockOrRemoveContact(c *gin.Context) {
+	if c.Request.Method != "POST" {
+		logger.LogError("BlockOrRemoveContact :: method POST is required")
+		models.ManageResponse(c.Writer, "method POST is required", http.StatusMethodNotAllowed, nil, false)
+		return
+	}
+	var contactRequest *models.ContactActionRequest
+
+	decoder := json.NewDecoder(c.Request.Body)
+	err := decoder.Decode(&contactRequest)
+	if err != nil {
+		logger.LogError("AddAndUpdateCOntact :: error in decoding the body" + err.Error())
+		models.ManageResponse(c.Writer, "error in decoding the body "+err.Error(), http.StatusBadRequest, nil, false)
+
+		return
+	}
+
+	err = contactRequest.IsValid()
+	if err != nil {
+		logger.LogError("BlockOrRemoveContact :: Invalid action " + err.Error())
+		models.ManageResponse(c.Writer, " error in payload :: "+err.Error(), http.StatusBadRequest, nil, false)
+		return
+	}
+
+	claims := security.GetClaims(c)
+
+	claimUsername := claims["username"].(string)
+
+	if claimUsername != contactRequest.UserID {
+		logger.LogError("BlockOrRemoveContact :: error in fetching the contact Authorize user is not as same as query user")
+		models.ManageResponse(c.Writer, " error in fetching the contact Authorize user is not as same as query user", http.StatusBadRequest, nil, false)
+		return
+	}
+
+	contactResponse, err := services.UpdateContact(contactRequest)
+	if err != nil {
+		logger.LogError("BlockOrRemoveContact :: error in updating the contact  " + err.Error())
+		models.ManageResponse(c.Writer, err.Error(), http.StatusNotAcceptable, nil, false)
+		c.Abort()
+		return
+
+	}
+	logger.LogInfo("BlockOrRemoveContact ::   " + contactResponse)
+	models.ManageResponse(c.Writer, contactResponse, http.StatusOK, nil, true)
+
+}
