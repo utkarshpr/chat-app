@@ -32,6 +32,10 @@ func main() {
 	routes.UserRoutes(r)
 	routes.ContactRoutes(r)
 
+	// message
+	routes.MessageRoute(r)
+	routes.WebSocketRoute(r)
+
 	port := os.Getenv("PORT")
 	err := r.Run(port) // Changes the port to 8081
 	if err != nil {

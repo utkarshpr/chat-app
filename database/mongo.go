@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"real-time-chat-app/logger"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -30,7 +31,7 @@ func InitMongoDB() {
 	if err != nil {
 		log.Fatalf("Failed to ping MongoDB: %v", err)
 	}
-
+	logger.LogInfo("COnnected to MONGO DB")
 	fmt.Println("Connected to MongoDB")
 }
 

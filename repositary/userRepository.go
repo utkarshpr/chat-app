@@ -20,6 +20,7 @@ import (
 var userCollection *mongo.Collection
 var jwtCollection *mongo.Collection
 var contactCollection *mongo.Collection
+var messageCollection *mongo.Collection
 
 // Initialize userCollection after the MongoDB connection is established
 func InitRepository() {
@@ -28,6 +29,7 @@ func InitRepository() {
 	userCollection = database.GetCollection(os.Getenv("MONGO_TABLE_USER"))
 	jwtCollection = database.GetCollection(os.Getenv("MONGO_TABLE_JWT_STORE"))
 	contactCollection = database.GetCollection(os.Getenv("MONGO_TABLE_CONTACT"))
+	messageCollection = database.GetCollection(os.Getenv("MONGO_TABLE_MESSAGE"))
 	logger.LogInfo("Repository Initialized with MongoDB collections")
 }
 
