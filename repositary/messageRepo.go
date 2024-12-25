@@ -8,9 +8,15 @@ import (
 )
 
 func SaveMessage(message *models.Message) error {
+	logger.LogInfo("SendMessage repo :: started")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	logger.LogInfo(messageCollection.Name())
 	defer cancel()
+	message.ChatID = message.SenderID + " -> " + message.RecipientID
 	_, err := messageCollection.InsertOne(ctx, message)
-	return err
+	if err != nil {
+		logger.LogInfo("SendMessage repo :: error " + err.Error())
+		return err
+	}
+	logger.LogInfo("SendMessage repo :: started")
+	return nil
 }

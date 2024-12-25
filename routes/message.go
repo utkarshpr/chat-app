@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"real-time-chat-app/controllers"
 	"real-time-chat-app/logger"
+	"real-time-chat-app/models"
 	"real-time-chat-app/security"
 	"real-time-chat-app/utils"
 
@@ -50,6 +51,7 @@ func WebSocketRoute(r *gin.Engine) {
 		userID := c.DefaultQuery("userID", "")
 		if userID == "" {
 			log.Println("No userID provided")
+			models.ManageResponse(c.Writer, "No userID provided", http.StatusBadRequest, nil, false)
 			conn.Close()
 			return
 		}
