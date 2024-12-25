@@ -1,4 +1,4 @@
-Here is the `README.md` file formatted in a way you can directly copy and paste:
+Here’s the updated `README.md` without the exact values of the `.env` file:
 
 ```markdown
 # Real-Time Chat Application API Documentation
@@ -32,7 +32,26 @@ To run the API and view the documentation, follow the instructions below.
    go mod tidy
    ```
 
-3. **Run the server**:
+3. **Configure the environment**:
+
+   Create a `.env` file in the root directory of the project and add the following configuration:
+
+   ```env
+   MONGO_URI=<your-mongo-uri>
+   MONGO_DATABASE=<your-database-name>
+   MONGO_TABLE_USER=<your-user-table>
+   MONGO_TABLE_JWT_STORE=<your-jwt-table>
+   MONGO_TABLE_CONTACT=<your-contact-table>
+   MONGO_TABLE_MESSAGE=<your-message-table>
+
+   PORT=:8081
+
+   JWT_SECRET_KEY=<your-jwt-secret-key>
+   ```
+
+   Replace the placeholders with the appropriate values for your setup.
+
+4. **Run the server**:
 
    To start the application, run:
 
@@ -40,21 +59,21 @@ To run the API and view the documentation, follow the instructions below.
    go run main.go
    ```
 
-4. **Access the API**:
+5. **Access the API**:
 
-   The server will start, and you can access the API on [http://localhost:8080](http://localhost:8080).
+   The server will start, and you can access the API on [http://localhost:8081](http://localhost:8081).
 
 ### Swagger UI
 
 To view the API documentation, navigate to:
 
-- [Swagger UI for the API Documentation](http://localhost:8080/swagger/index.html)
+- [Swagger UI for the API Documentation](http://localhost:8081/swagger/index.html)
 
 You can interact with the API through the Swagger UI, which is generated based on the `swagger.yaml` file located in the `docs` folder.
 
 Alternatively, you can access the raw Swagger JSON directly by visiting:
 
-- [Swagger JSON](http://localhost:8080/swagger.json)
+- [Swagger JSON](http://localhost:8081/swagger.json)
 
 ### API Endpoints
 
@@ -96,49 +115,20 @@ Alternatively, you can access the raw Swagger JSON directly by visiting:
 - **POST /user/updateUserAndProfile**  
   Updates the details of a user based on the provided username and JSON body payload.
 
-### API Definitions
+### Environment Variables
 
-- **models.GenericResponse**  
-  A generic response structure used across all endpoints.
+Below are the environment variables used by the application:
 
-- **models.LoginUser**  
-  Contains the `username` and `password` fields for user login.
+- `MONGO_URI`: The MongoDB connection URI.
+- `MONGO_DATABASE`: The name of the MongoDB database.
+- `MONGO_TABLE_USER`: The name of the user table in the database.
+- `MONGO_TABLE_JWT_STORE`: The table to store JWT tokens.
+- `MONGO_TABLE_CONTACT`: The table to store contact information.
+- `MONGO_TABLE_MESSAGE`: The table to store messages.
+- `PORT`: The port number for the application to listen on.
+- `JWT_SECRET_KEY`: The secret key used for signing JWT tokens.
 
-- **models.User**  
-  Contains user details like `first_name`, `last_name`, `email`, etc.
-
-- **models.Message**  
-  Contains message details such as `chat_id`, `sender_id`, `recipient_id`, etc.
-
-- **models.ContactRequest**  
-  Used to add a contact request between users.
-
-- **models.ContactActionRequest**  
-  Defines actions like `remove` or `block` for managing contacts.
-
-### File Structure
-
-- `main.go` - Entry point of the application, sets up routes and API handlers.
-- `docs/swagger.yaml` - Contains the Swagger API documentation in YAML format.
-- `routes/` - Contains route definitions for user authentication, contacts, and messaging.
-- `models/` - Contains all data models used in the API.
-
-### License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-### Acknowledgments
-
-- **Swagger**: For generating the API documentation.
-- **Gin**: A web framework for Go used to build the API.
-- **MongoDB**: For the database used in storing user and message data.
-
----
-
-Feel free to open issues for any questions, bugs, or suggestions!
+Make sure to replace the placeholders in the `.env` file with your actual values.
 ```
 
-### Notes:
-- The provided markdown ensures that you can copy the entire content directly into your README file without any formatting issues.
-- Make sure to replace `https://github.com/your-repo/real-time-chat-app.git` with the actual URL of your repository.
-- The structure includes detailed information about the API, endpoints, and available models. Adjust as necessary based on your specific API implementation.
+This version hides the sensitive values in the `.env` file while keeping the structure intact. You can copy and paste this into your `README.md` directly.
