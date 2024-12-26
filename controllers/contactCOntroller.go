@@ -17,18 +17,18 @@ import (
 // @Summary      Adds or updates a contact request between users.
 // @Description  This endpoint processes a request to add or update a contact request between two users.
 //
-//	The request must be made using the POST method, and the payload must include the necessary
-//	contact details. Validation is performed on the request body and user claims before processing.
+// The request must be made using the POST method, and the payload must include the necessary
+// contact details. Validation is performed on the request body and user claims before processing.
 //
 // @Tags         Contacts
 // @Accept       json
 // @Produce      json
 // @Param        Authorization header string true "Bearer token"
 // @Param        body body models.ContactRequest true "Contact request details"
-// @Success      200 {object} gin.H{"message": "Contact request processed successfully", "status": true}
-// @Failure      405 {object} gin.H{"message": "POST method required", "status": false}
-// @Failure      400 {object} gin.H{"message": "Error in decoding or validating the body", "status": false}
-// @Failure      500 {object} gin.H{"message": "Error processing the request", "status": false}
+// @Success      200 {object} models.GenericResponse
+// @Failure      405 {object} models.GenericResponse
+// @Failure      400 {object} models.GenericResponse
+// @Failure      500 {object} models.GenericResponse
 // @Router       /contacts/add [post]
 func AddAndUpdateCOntact(c *gin.Context) {
 	logger.LogInfo("AddAndUpdateCOntact :: started")
@@ -80,11 +80,11 @@ func AddAndUpdateCOntact(c *gin.Context) {
 // @Produce      json
 // @Param        Authorization header string true "Bearer token"
 // @Param        username query string true "Username of the user to fetch contacts for"
-// @Success      200 {object} gin.H{"message": "Successfully fetched the contact list", "status": true, "data": []models.ContactRequest}
-// @Failure      405 {object} gin.H{"message": "GET method required", "status": false}
-// @Failure      406 {object} gin.H{"message": "Please provide the username in query parameter", "status": false}
-// @Failure      400 {object} gin.H{"message": "Authorized user is not the same as query user", "status": false}
-// @Failure      406 {object} gin.H{"message": "Error in fetching the contact list", "status": false}
+// @Success      200 {object} models.GenericResponse
+// @Failure      405 {object} models.GenericResponse
+// @Failure      406 {object} models.GenericResponse
+// @Failure      400 {object} models.GenericResponse
+// @Failure      406 {object} models.GenericResponse
 // @Router       /contacts/get [get]
 
 func GetListofContact(c *gin.Context) {
@@ -126,6 +126,20 @@ func GetListofContact(c *gin.Context) {
 
 }
 
+// BlockOrRemoveContact handles the blocking or removal of a contact for a user.
+// This function expects a POST request with a valid payload and authorized user claims.
+//
+// @Description Handles the blocking or removal of a contact based on user input.
+// It validates the request payload, checks user authorization, and updates the contact status.
+// @Tags Contacts
+// @Accept  json
+// @Produce  json
+// @Param  requestBody  body  models.ContactActionRequest  true  "Contact action request payload"
+// @Success 200  {object}  models.GenericResponse
+// @Failure 400  {object}  models.GenericResponse
+// @Failure 405  {object}  models.GenericResponse
+// @Failure 406  {object}  models.GenericResponse
+// @Router /contacts/action [post]
 func BlockOrRemoveContact(c *gin.Context) {
 	if c.Request.Method != "POST" {
 		logger.LogError("BlockOrRemoveContact :: method POST is required")

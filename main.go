@@ -35,7 +35,10 @@ func main() {
 	// message
 	routes.MessageRoute(r)
 	routes.WebSocketRoute(r)
-
+	// Serve Swagger UI and JSON
+	r.GET("/swagger.yaml", func(c *gin.Context) {
+		c.File("./docs/swagger.yaml") // Serve the swagger.yaml file
+	})
 	port := os.Getenv("PORT")
 	err := r.Run(port) // Changes the port to 8081
 	if err != nil {

@@ -19,11 +19,11 @@ import (
 // @Accept json
 // @Produce json
 // @Param username query string true "Username of the user to fetch"
-// @Success 200 {object} models.UserResponse "User details fetched successfully"
-// @Failure 400 {object} models.ErrorResponse "Error while fetching user details"
-// @Failure 405 {object} models.ErrorResponse "GET method required"
-// @Failure 406 {object} models.ErrorResponse "Username not provided in query parameter"
-// @Router /fetchUser [get]
+// @Success 200 {object} models.GenericResponse
+// @Failure 400 {object} models.GenericResponse
+// @Failure 405 {object} models.GenericResponse
+// @Failure 406 {object} models.GenericResponse
+// @Router /user/fetchUser [get]
 func FetchUserController(c *gin.Context) {
 	logger.LogInfo("FetchUserController :: started")
 	if c.Request.Method != "GET" {
@@ -63,11 +63,11 @@ func FetchUserController(c *gin.Context) {
 // @Produce json
 // @Param username query string true "Username of the user to update"
 // @Param body body models.UpdateUserAndProfile true "JSON payload containing updated user details"
-// @Success 200 {object} models.UserResponse "User details updated successfully"
-// @Failure 400 {object} models.ErrorResponse "Error in decoding the request body"
-// @Failure 405 {object} models.ErrorResponse "POST method required"
-// @Failure 406 {object} models.ErrorResponse "Username not provided in query parameter"
-// @Router /updateUser [post]
+// @Success 200 {object} models.GenericResponse
+// @Failure 400 {object} models.GenericResponse
+// @Failure 405 {object} models.GenericResponse
+// @Failure 406 {object} models.GenericResponse
+// @Router /user/updateUserAndProfile [post]
 func UpdateUserAndProfile(c *gin.Context) {
 
 	logger.LogInfo("UpdateUserAndProfile :: started")
@@ -107,6 +107,19 @@ func UpdateUserAndProfile(c *gin.Context) {
 
 }
 
+// DeleteUserController handles deleting a user account.
+// This endpoint accepts a DELETE request and requires an "ADMIN" role to perform the operation.
+//
+// @Description Deletes a user account by the specified username.
+// @Tags User Management
+// @Accept  json
+// @Produce  json
+// @Param  username  query  string  true  "Username of the user to delete"
+// @Success 200  {object}  models.GenericResponse
+// @Failure 400  {object}  models.GenericResponse
+// @Failure 405  {object}  models.GenericResponse
+// @Failure 406  {object}  models.GenericResponse
+// @Router /user/deleteUser [delete]
 func DeleteUserController(c *gin.Context) {
 	logger.LogInfo("DeleteUserController :: started")
 	if c.Request.Method != "DELETE" {

@@ -10,6 +10,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// MessageSentController handles sending a new message.
+// This endpoint accepts a POST request with a message payload, validates it,
+// and ensures the authorized user is the sender.
+//
+// @Description Sends a new message from the authorized user to the recipient.
+// @Tags Messages
+// @Accept  json
+// @Produce  json
+// @Param  requestBody  body  models.Message  true  "Message payload"
+// @Success 200  {object}  models.GenericResponse
+// @Failure 400  {object}  models.GenericResponse
+// @Failure 405  {object}  models.GenericResponse
+// @Router /messages/sent [post]
 func MessageSentController(c *gin.Context) {
 	logger.LogInfo("MessageSentController :: started")
 
@@ -43,6 +56,19 @@ func MessageSentController(c *gin.Context) {
 	models.ManageResponse(c.Writer, "Message sent successfully", http.StatusOK, response, true)
 }
 
+// MessageGetAllController retrieves all messages between the authorized user and a specified recipient.
+// This endpoint accepts a GET request with the recipient ID as a query parameter.
+//
+// @Description Fetches all messages exchanged with a specific recipient.
+// @Tags Messages
+// @Accept  json
+// @Produce  json
+// @Param  reciever  query  string  true  "Recipient ID"
+// @Success 200  {object}  models.GenericResponse
+// @Failure 400  {object}  models.GenericResponse
+// @Failure 405  {object}  models.GenericResponse
+// @Failure 406  {object}  models.GenericResponse
+// @Router /messages/get [get]
 func MessageGetAllController(c *gin.Context) {
 	logger.LogInfo("MessageGetAllController :: started")
 	if c.Request.Method != "GET" {

@@ -21,10 +21,10 @@ import (
 // @Accept json
 // @Produce json
 // @Param user body models.User true "User Details"
-// @Success 201 {object} models.Response{data=models.UserResponse} "User created successfully"
-// @Failure 400 {object} models.Response "Invalid input or validation errors"
-// @Failure 405 {object} models.Response "Method not allowed"
-// @Failure 500 {object} models.Response "Internal server error"
+// @Success 201 {object} models.GenericResponse
+// @Failure 400 {object} models.GenericResponse
+// @Failure 405 {object} models.GenericResponse
+// @Failure 500 {object} models.GenericResponse
 // @Router /auth/signup [post]
 func SignUpController(w http.ResponseWriter, r *http.Request) {
 
@@ -90,10 +90,10 @@ func SignUpController(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param user body models.LoginUser true "Login User Details"
-// @Success 200 {object} models.Response{data=models.LoginResponse} "User logged in successfully"
-// @Failure 400 {object} models.Response "Invalid input or validation errors"
-// @Failure 405 {object} models.Response "Method not allowed"
-// @Failure 500 {object} models.Response "Internal server error"
+// @Success 200 {object} models.GenericResponse
+// @Failure 400 {object} models.GenericResponse
+// @Failure 405 {object} models.GenericResponse
+// @Failure 500 {object} models.GenericResponse
 // @Router /auth/login [post]
 func LoginController(w http.ResponseWriter, r *http.Request) {
 
@@ -145,22 +145,19 @@ func LoginController(w http.ResponseWriter, r *http.Request) {
 
 // LogoutController handles user logout by removing their JWT tokens from the database.
 //
-// @Summary      Logs out the user by invalidating their JWT token.
-// @Description  This endpoint logs out the currently logged-in user. The user must be authenticated,
-//
-//	and their JWT token will be removed from the database. A valid "Authorization" header
-//	with a bearer token is required.
-//
-// @Tags         Authentication
-// @Accept       json
-// @Produce      json
-// @Param        Authorization header string true "Bearer token"
-// @Success      202 {object} gin.H{"message": "Logout successfuly", "status": true}
-// @Failure      405 {object} gin.H{"message": "POST method required", "status": false}
-// @Failure      401 {object} gin.H{"error": "Unauthorized"}
-// @Failure      500 {object} gin.H{"message": "Unable to process user claims.", "status": false}
-// @Failure      400 {object} gin.H{"message": "Unable to Logout", "status": false}
-// @Router       /auth/logout [post]
+// @Summary Logs out the user by invalidating their JWT token.
+// @Description This endpoint logs out the currently logged-in user. The user must be authenticated,
+// and their JWT token will be removed from the database. A valid "Authorization" header with a bearer token is required.
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer token"
+// @Success 202 {object} models.GenericResponse
+// @Failure 405 {object} models.GenericResponse
+// @Failure 401 {object} models.GenericResponse
+// @Failure 500 {object} models.GenericResponse
+// @Failure 400 {object} models.GenericResponse
+// @Router /auth/logout [post]
 func LogoutController(c *gin.Context) {
 
 	logger.LogInfo("LogoutController :: started")
