@@ -33,11 +33,15 @@ func MessageSentController(c *gin.Context) {
 	}
 
 	var message models.Message
-	if err := c.ShouldBindJSON(&message); err != nil {
+	if err := c.ShouldBind(&message); err != nil {
 		logger.LogError("MessageSentController :: invalid input" + err.Error())
 		models.ManageResponse(c.Writer, "Invalid input ", http.StatusBadRequest, nil, false)
 		return
 	}
+	logger.LogInfo("username from message  " + message.SenderID)
+	logger.LogInfo("media from message  " + message.MediaURL)
+	logger.LogInfo("reciept from message  " + message.RecipientID)
+
 	claims := security.GetClaims(c)
 	username := claims["username"].(string)
 	if username != message.SenderID {
@@ -45,8 +49,19 @@ func MessageSentController(c *gin.Context) {
 		models.ManageResponse(c.Writer, "Authorize user can only sent the message  ", http.StatusBadRequest, nil, false)
 		return
 	}
+	//media
+	mediaFile, mediaHeader, err := c.Request.FormFile("media")
+	if err != nil {
+		if err == http.ErrMissingFile {
+			logger.LogInfo("No media file uploaded")
+		} else {
+			logger.LogError("Error retrieving media file: " + err.Error())
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid media file"})
+			return
+		}
+	}
 
-	response, err := services.SendMessage(&message)
+	response, err := services.SendMessage(&message, mediaFile, mediaHeader)
 	if err != nil {
 		logger.LogError("MessageSentController :: Failed to send message ")
 		models.ManageResponse(c.Writer, "Failed to send message"+err.Error(), http.StatusBadRequest, nil, false)
@@ -131,4 +146,38 @@ func MessageEditController(c *gin.Context) {
 		return
 	}
 	models.ManageResponse(c.Writer, "Successfully edited the message ", http.StatusOK, messageResponse, true)
+}
+
+func MessageDeleteController(c *gin.Context) {
+	logger.LogInfo("MessageDeleteController :: started")
+
+	if c.Request.Method != "DELETE" {
+		logger.LogError("MessageDeleteController :: DELETE method is required")
+		models.ManageResponse(c.Writer, "DELETE method is required", http.StatusMethodNotAllowed, "", false)
+		return
+	}
+
+	var editMessage *models.DeleteMessage
+	if err := c.ShouldBindJSON(&editMessage); err != nil {
+		logger.LogError("MessageDeleteController ::uanble to parse the json " + err.Error())
+		models.ManageResponse(c.Writer, "uanble to parse the json", http.StatusBadRequest, "", false)
+		return
+	}
+
+	username := security.GetClaims(c)["username"].(string)
+	logger.LogInfo("Username fetch from authorization token " + username)
+
+	if username != editMessage.FromUserID {
+		logger.LogError("MessageEditController :: Authorize user can only sent the message ")
+		models.ManageResponse(c.Writer, "Authorize user can only sent the message  ", http.StatusBadRequest, nil, false)
+		return
+	}
+
+	_, err := services.MessageDelete(editMessage)
+	if err != nil {
+		logger.LogError("unable to delete message error from service ")
+		models.ManageResponse(c.Writer, "unable to delete message error from service ", http.StatusBadRequest, "", false)
+		return
+	}
+	models.ManageResponse(c.Writer, " MessageDeleteController ::Successfully deleted the message ", http.StatusOK, nil, true)
 }

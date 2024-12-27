@@ -45,3 +45,5 @@ app.log
 *.swp
 *.orig
 *.~*
+
+real-time-chat-app

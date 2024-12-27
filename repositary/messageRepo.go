@@ -37,10 +37,29 @@ func GetMessage(username string, reciever string) ([]*models.GetMessage, error) 
 		"recipient_id": reciever,
 	}
 
+	// var allMessages []bson.M
+	// cursor, err := messageCollection.Find(ctx, bson.M{})
+	// if err != nil {
+	// 	logger.LogError("Error fetching all messages: " + err.Error())
+	// 	return nil, errors.New("error fetching messages")
+	// }
+	// defer cursor.Close(ctx)
+
+	// // Iterate through the cursor and decode each document
+	// if err := cursor.All(ctx, &allMessages); err != nil {
+	// 	logger.LogError("Error decoding all messages: " + err.Error())
+	// 	return nil, errors.New("error decoding messages")
+	// }
+
+	// logger.LogInfo(fmt.Sprintf("All Messages: %+v", allMessages))
+
+	logger.LogInfo("GetMessage from" + reciever + " for user " + username)
 	findOptions := options.Find()
 	findOptions.SetSort(bson.D{{Key: "timestamp", Value: 1}})
+	fmt.Println(filter)
 	cursor, err := messageCollection.Find(ctx, filter, findOptions)
 	if err != nil {
+		logger.LogError("GetMessage :: error " + err.Error())
 		logger.LogError("GetMessage :: error " + err.Error())
 		if err == mongo.ErrNoDocuments {
 			return nil, nil
@@ -48,7 +67,7 @@ func GetMessage(username string, reciever string) ([]*models.GetMessage, error) 
 		return nil, err
 	}
 	defer cursor.Close(ctx)
-
+	fmt.Println(cursor)
 	// Parse the results into a slice of ContactRequest objects
 	var contacts []*models.GetMessage
 	for cursor.Next(ctx) {
@@ -77,9 +96,7 @@ func EditMessage(editMessage *models.EditMessage) (*models.Message, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	filter := bson.M{
-		"sender_id":    editMessage.FromUserID,
-		"recipient_id": editMessage.ToUserID,
-		"message_id":   editMessage.ID,
+		"message_id": editMessage.ID,
 	}
 	fmt.Println(filter)
 	var originalmessage *models.Message
@@ -106,4 +123,32 @@ func EditMessage(editMessage *models.EditMessage) (*models.Message, error) {
 	}
 	logger.LogInfo("Edit repo :: content edit successfully")
 	return originalmessage, nil
+}
+
+func MessageDelete(deleteMessage *models.DeleteMessage) (*models.DeleteMessageResponse, error) {
+	logger.LogInfo("MessageDelete service :: started")
+
+	// Prepare the context with a timeout for the database operation
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	fmt.Println(deleteMessage.ID)
+	filter := bson.M{"message_id": deleteMessage.ID}
+
+	deletedResult, err := messageCollection.DeleteOne(ctx, filter)
+	if err != nil {
+		logger.LogError("MessageDelete service :: error deleting message: " + err.Error())
+		return nil, errors.New("error deleting message")
+	}
+
+	if deletedResult.DeletedCount == 0 {
+		logger.LogError("MessageDelete service :: message not found with ID: " + deleteMessage.ID)
+		return nil, errors.New("message not found")
+	}
+
+	logger.LogInfo("MessageDelete service :: message deleted successfully, ID: " + deleteMessage.ID)
+	messageResponse := &models.DeleteMessageResponse{
+		Messsage: "Message deleted Successfully",
+	}
+	return messageResponse, nil
 }

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"real-time-chat-app/logger"
 	"real-time-chat-app/models"
 	"sync"
 	"time"
@@ -67,6 +68,7 @@ func EstablishWebSocketConnection(w http.ResponseWriter, r *http.Request) {
 
 // BroadcastToRecipient sends a message to the recipient via WebSocket
 func BroadcastToRecipient(recipientID string, message *models.Message) {
+	logger.LogInfo("BroadcastToRecipient started for" + recipientID)
 	ConnMutex.Lock()
 	defer ConnMutex.Unlock()
 
@@ -119,4 +121,29 @@ func UnregisterConnection(recipientID string) {
 func HandleError(c *gin.Context, statusCode int, message string, err error) {
 	log.Printf("Error: %s, Details: %v", message, err)
 	c.JSON(statusCode, gin.H{"error": message, "details": err.Error()})
+}
+
+func BroadcastToRecipientDelete(recipientID string, message *models.DeleteMessageResponse) {
+	logger.LogInfo("BroadcastToRecipient started for" + recipientID)
+	ConnMutex.Lock()
+	defer ConnMutex.Unlock()
+
+	conn, exists := Connections[recipientID]
+	if !exists {
+		log.Printf("Recipient %s is not online. Message cannot be delivered in real-time.", recipientID)
+		return
+	}
+
+	messageBytes, err := json.Marshal(message)
+	if err != nil {
+		log.Printf("Failed to serialize message for recipient %s: %v", recipientID, err)
+		return
+	}
+
+	err = conn.WriteMessage(websocket.TextMessage, messageBytes)
+	if err != nil {
+		log.Printf("Failed to send message to recipient %s: %v", recipientID, err)
+		delete(Connections, recipientID)
+		conn.Close()
+	}
 }

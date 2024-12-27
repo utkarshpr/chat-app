@@ -15,7 +15,7 @@ import (
 )
 
 func MessageRoute(r *gin.Engine) {
-	logger.LogInfo("User Routes ...")
+	logger.LogInfo("MessageRoute Routes ...")
 	user := r.Group("/message")
 	{
 		user.Use(security.GinAuthMiddleware())
@@ -29,6 +29,18 @@ func MessageRoute(r *gin.Engine) {
 
 				// Call SignUpController with ResponseWriter and Request
 				controllers.MessageEditController(c)
+			})
+
+			user.DELETE("/delete", func(c *gin.Context) {
+
+				// Call SignUpController with ResponseWriter and Request
+				controllers.MessageDeleteController(c)
+			})
+
+			user.GET("/get", func(c *gin.Context) {
+
+				// Call SignUpController with ResponseWriter and Request
+				controllers.MessageGetAllController(c)
 			})
 
 		}

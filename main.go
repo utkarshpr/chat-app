@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"real-time-chat-app/config"
 	"real-time-chat-app/database"
 	"real-time-chat-app/logger"
 	repo "real-time-chat-app/repositary"
@@ -35,6 +36,7 @@ func main() {
 	// message
 	routes.MessageRoute(r)
 	routes.WebSocketRoute(r)
+	config.InitCloudinary()
 	// Serve Swagger UI and JSON
 	r.GET("/swagger.yaml", func(c *gin.Context) {
 		c.File("./docs/swagger.yaml") // Serve the swagger.yaml file
