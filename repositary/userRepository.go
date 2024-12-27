@@ -305,6 +305,10 @@ func UserAndProfileUpdate(username string, updateUser *models.UpdateUserAndProfi
 	}
 
 	err = handleInvalidDatainUpdate(updateUser, &user)
+	if err != nil {
+		logger.LogError("error in validating user data " + err.Error())
+		return nil, err
+	}
 	updateData := bson.M{
 		"password":       updateUser.Password,
 		"avatar_url":     updateUser.AvatarURL,
