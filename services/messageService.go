@@ -36,3 +36,15 @@ func GetMessage(username string, reciever string) ([]*models.GetMessage, error) 
 	return resp, nil
 
 }
+
+func MessageEdit(editmessage *models.EditMessage) (*models.Message, error) {
+	logger.LogInfo("MessageEdit service :: started ")
+	editMessageResponse, err := repo.EditMessage(editmessage)
+	if err != nil {
+		logger.LogError("error in saveing the message ")
+		return nil, err
+	}
+	utils.BroadcastToRecipient(editmessage.ToUserID, editMessageResponse)
+	logger.LogInfo("MessageEdit service :: ended ")
+	return editMessageResponse, nil
+}

@@ -98,3 +98,37 @@ func MessageGetAllController(c *gin.Context) {
 
 	logger.LogInfo("MessageGetAllController :: ended")
 }
+
+func MessageEditController(c *gin.Context) {
+	logger.LogInfo("MessageEditController :: started")
+
+	if c.Request.Method != "PATCH" {
+		logger.LogError("MessageEditController :: PATCH method is required")
+		models.ManageResponse(c.Writer, "PATCH method is required", http.StatusMethodNotAllowed, "", false)
+		return
+	}
+
+	var editMessage *models.EditMessage
+	if err := c.ShouldBindJSON(&editMessage); err != nil {
+		logger.LogError("MessageEditController ::uanble to parse the json " + err.Error())
+		models.ManageResponse(c.Writer, "uanble to parse the json", http.StatusBadRequest, "", false)
+		return
+	}
+
+	username := security.GetClaims(c)["username"].(string)
+	logger.LogInfo("Username fetch from authorization token " + username)
+
+	if username != editMessage.FromUserID {
+		logger.LogError("MessageEditController :: Authorize user can only sent the message ")
+		models.ManageResponse(c.Writer, "Authorize user can only sent the message  ", http.StatusBadRequest, nil, false)
+		return
+	}
+
+	messageResponse, err := services.MessageEdit(editMessage)
+	if err != nil {
+		logger.LogError("unable to edit message error from service ")
+		models.ManageResponse(c.Writer, "unable to edit message error from service ", http.StatusBadRequest, "", false)
+		return
+	}
+	models.ManageResponse(c.Writer, "Successfully edited the message ", http.StatusOK, messageResponse, true)
+}

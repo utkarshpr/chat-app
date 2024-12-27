@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"real-time-chat-app/logger"
 	"real-time-chat-app/models"
+	"strconv"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -69,4 +70,40 @@ func GetMessage(username string, reciever string) ([]*models.GetMessage, error) 
 
 	logger.LogInfo("GetMessage repo :: ended")
 	return contacts, nil
+}
+
+func EditMessage(editMessage *models.EditMessage) (*models.Message, error) {
+	logger.LogInfo("EditMessage  service :: started ")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	filter := bson.M{
+		"sender_id":    editMessage.FromUserID,
+		"recipient_id": editMessage.ToUserID,
+		"message_id":   editMessage.ID,
+	}
+	fmt.Println(filter)
+	var originalmessage *models.Message
+	err := messageCollection.FindOne(ctx, filter).Decode(&originalmessage)
+	if err != nil {
+		logger.LogError("EditMessage repo :: cannot fetch the original message " + err.Error())
+		return nil, errors.New("unable to update the message ")
+	}
+	logger.LogInfo("document fetch ::" + strconv.Itoa(len(filter)))
+	originalmessage.Content = editMessage.NewText
+	originalmessage.Timestamp = time.Now().Format(time.RFC3339) // Update timestamp manually if needed
+	originalmessage.Status = "edited sent"
+
+	// Persist the changes to the database
+	update := bson.M{"$set": bson.M{
+		"content":   originalmessage.Content,
+		"timestamp": originalmessage.Timestamp,
+		"status":    originalmessage.Status,
+	}}
+	_, updateErr := messageCollection.UpdateOne(ctx, filter, update)
+	if updateErr != nil {
+		logger.LogError("EditMessage repo :: failed to update the message: " + updateErr.Error())
+		return nil, errors.New("unable to update the message")
+	}
+	logger.LogInfo("Edit repo :: content edit successfully")
+	return originalmessage, nil
 }
